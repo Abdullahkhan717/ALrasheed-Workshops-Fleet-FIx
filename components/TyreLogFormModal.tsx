@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
@@ -14,7 +14,7 @@ interface TyreLogFormModalProps {
 export const TyreLogFormModal: React.FC<TyreLogFormModalProps> = ({ onClose, onSave }) => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
-  const { vehicles, locations } = useData();
+  const { vehicles, locations, workshops } = useData();
   
   const [vehicleId, setVehicleId] = useState('');
   const [vehicleSearch, setVehicleSearch] = useState('');
@@ -24,7 +24,8 @@ export const TyreLogFormModal: React.FC<TyreLogFormModalProps> = ({ onClose, onS
   const [time, setTime] = useState(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
   const [mileage, setMileage] = useState('');
   const [requesterName, setRequesterName] = useState('');
-  const [workshopLocation, setWorkshopLocation] = useState('');
+  const [workshopLocation, setWorkshopLocation] = useState('Puncture WorkShop');
+  const [mechanicName, setMechanicName] = useState('');
   
   const [tyreType, setTyreType] = useState('');
   const [customTyreType, setCustomTyreType] = useState('');
@@ -43,6 +44,24 @@ export const TyreLogFormModal: React.FC<TyreLogFormModalProps> = ({ onClose, onS
   const [isFromVehicleDropdownOpen, setIsFromVehicleDropdownOpen] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
+
+  // Update mechanic name when workshop changes
+  useEffect(() => {
+    const workshop = workshops.find(w => w.subName === workshopLocation);
+    if (workshop) {
+      setMechanicName(workshop.mechanic || workshop.foreman || '');
+    } else {
+      setMechanicName('');
+    }
+  }, [workshopLocation, workshops]);
+
+  // Set initial mechanic name if default workshop exists
+  useEffect(() => {
+    const workshop = workshops.find(w => w.subName === 'Puncture WorkShop');
+    if (workshop) {
+      setMechanicName(workshop.mechanic || workshop.foreman || '');
+    }
+  }, [workshops]);
 
   // Filtered vehicles for search
   const filteredVehicles = useMemo(() => {
@@ -111,7 +130,7 @@ export const TyreLogFormModal: React.FC<TyreLogFormModalProps> = ({ onClose, onS
                 fromVehicle: fromVehicle ? getVehicleDisplayName(fromVehicle) : '',
                 fromVehicleId: fromVehicleId
             }],
-            mechanicName: ''
+            mechanicName: mechanicName
         };
         await onSave(tyreLog);
         onClose();
@@ -215,7 +234,7 @@ export const TyreLogFormModal: React.FC<TyreLogFormModalProps> = ({ onClose, onS
               <input type="text" value={requesterName} onChange={(e) => setRequesterName(e.target.value)} className="w-full p-2 border border-gray-300 rounded-md" required />
             </div>
 
-            {/* Row 4: Workshop Location & Tyre Type */}
+            {/* Row 4: Workshop Location & Mechanic Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t('workshopLocation')}</label>
               <select
@@ -231,6 +250,18 @@ export const TyreLogFormModal: React.FC<TyreLogFormModalProps> = ({ onClose, onS
               </select>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('mechanicName')}</label>
+              <input 
+                type="text" 
+                value={mechanicName} 
+                onChange={(e) => setMechanicName(e.target.value)} 
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500" 
+                placeholder={t('mechanicName')}
+              />
+            </div>
+
+            {/* Row 5: Tyre Type & Tyre Size */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t('tyreType')}</label>
               <select

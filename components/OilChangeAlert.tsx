@@ -1,12 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
+import * as XLSX from 'xlsx';
 import { useData } from '../context/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatVehicleInfo } from '../utils/formatters';
-import { TruckIcon, CalendarIcon, MapPinIcon, UserIcon } from './Icons';
+import { TruckIcon, CalendarIcon, MapPinIcon, UserIcon, DownloadIcon } from './Icons';
 
 export const OilChangeAlert: React.FC = () => {
   const { oilLogs, vehicles } = useData();
   const { t } = useTranslation();
+
+  const [locationFilter, setLocationFilter] = useState('');
+  const [conditionFilter, setConditionFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
 
   const now = new Date();
   const tenDaysAgo = new Date();
@@ -29,8 +34,33 @@ export const OilChangeAlert: React.FC = () => {
     return { vehicle, latestLog, daysSince };
   }).filter(item => item.daysSince > 10);
 
+  // Apply filters
+  const filteredOverdue = overdueVehicles.filter(({ vehicle }) => {
+    const matchesLocation = locationFilter ? vehicle.branchLocation === locationFilter : true;
+    const matchesCondition = conditionFilter ? vehicle.condition === conditionFilter : true;
+    const matchesType = typeFilter ? vehicle.vehiclesType === typeFilter : true;
+    return matchesLocation && matchesCondition && matchesType;
+  });
+
   // Sort by daysSince descending (most overdue first)
-  const sortedOverdue = [...overdueVehicles].sort((a, b) => b.daysSince - a.daysSince);
+  const sortedOverdue = [...filteredOverdue].sort((a, b) => b.daysSince - a.daysSince);
+
+  const exportToExcel = () => {
+    const data = sortedOverdue.map(({ vehicle, latestLog, daysSince }) => ({
+      Vehicle: vehicle.vehicleCompanyNumber || vehicle.vehicleNumber,
+      DaysOverdue: daysSince === Infinity ? 'No History' : daysSince,
+      LastOilChangeDate: latestLog ? latestLog.date : 'N/A',
+      Location: vehicle.branchLocation,
+      Type: vehicle.vehiclesType,
+      Mileage: latestLog ? latestLog.mileage : 'N/A',
+      Driver: latestLog ? latestLog.driverName : 'N/A'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'OilChangeAlerts');
+    XLSX.writeFile(workbook, 'OilChangeAlerts.xlsx');
+  };
 
   const formatDate = (dateString: string) => {
     try {
@@ -41,13 +71,42 @@ export const OilChangeAlert: React.FC = () => {
     }
   };
 
+  const locations = Array.from(new Set(vehicles.map(v => v.branchLocation))).filter(Boolean);
+  const conditions = Array.from(new Set(vehicles.map(v => v.condition))).filter(Boolean);
+  const types = Array.from(new Set(vehicles.map(v => v.vehiclesType))).filter(Boolean);
+
   return (
     <div className="p-4 md:p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl md:text-4xl font-bold text-gray-800">{t('oilChangeAlert')}</h1>
-        <div className="bg-red-100 text-red-800 px-4 py-2 rounded-full text-sm font-bold">
-          {t('moreThan10Days')}
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={exportToExcel}
+            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+          >
+            <DownloadIcon className="h-5 w-5" />
+            {t('exportToExcel')}
+          </button>
+          <div className="bg-red-100 text-red-800 px-4 py-2 rounded-full text-sm font-bold">
+            {t('moreThan10Days')}
+          </div>
         </div>
+      </div>
+
+      {/* Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} className="p-2 border rounded-md">
+          <option value="">{t('allLocations')}</option>
+          {locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+        </select>
+        <select value={conditionFilter} onChange={(e) => setConditionFilter(e.target.value)} className="p-2 border rounded-md">
+          <option value="">{t('allConditions')}</option>
+          {conditions.map(cond => <option key={cond} value={cond}>{cond}</option>)}
+        </select>
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="p-2 border rounded-md">
+          <option value="">{t('allTypes')}</option>
+          {types.map(type => <option key={type} value={type}>{t(type)}</option>)}
+        </select>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -81,7 +81,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }));
       setVehicles(parsedVehicles);
 
-      setWorkshops(data[wsKey] || []);
+      const rawWorkshops = data[wsKey] || [];
+      const parsedWorkshops = rawWorkshops.map((w: any) => ({
+        id: String(w.id || w.WorkshopID || w.workshopId || ''),
+        subName: w.subName || w.SubName || '',
+        foreman: w.foreman || w.Foreman || '',
+        location: w.location || w.Location || '',
+        mechanic: w.mechanic || w.Mechanic || '',
+        arabicName: w.arabicName || w.ArabicName || ''
+      }));
+      setWorkshops(parsedWorkshops);
       
       const safeJsonParse = (str: string) => {
           if (!str) return [];
