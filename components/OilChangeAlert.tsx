@@ -49,8 +49,7 @@ export const OilChangeAlert: React.FC<OilChangeAlertProps> = ({ onVehicleClick }
     const matchesType = typeFilter ? vehicle.vehiclesType === typeFilter : true;
     const matchesSearch = searchQuery ? (
       String(vehicle.vehicleNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      String(vehicle.vehicleCompanyNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      String(vehicle.serialNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
+      String(vehicle.vehicleCompanyNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
     ) : true;
     return matchesLocation && matchesCondition && matchesType && matchesSearch;
   });
