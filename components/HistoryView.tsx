@@ -8,7 +8,7 @@ import { CompletionFormModal } from './CompletionFormModal';
 import { SearchableVehicleSelect } from './SearchableVehicleSelect';
 import * as XLSX from 'xlsx';
 import { translateText } from '../services/translationService';
-import { formatDate, formatTime, formatVehicleInfo } from '../utils/formatters';
+import { formatDate, formatTime, formatVehicleInfo, parseDate } from '../utils/formatters';
 
 interface HistoryViewProps {
   vehicles: Vehicle[];
@@ -58,15 +58,20 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
         return false;
       }
       if (timeFilter === 'monthly' && selectedMonth) {
-        const reqMonth = new Date(req.dateIn).toISOString().slice(0, 7);
+        const reqDate = parseDate(req.dateIn);
+        const reqMonth = !isNaN(reqDate.getTime()) ? reqDate.toISOString().slice(0, 7) : '';
         if (reqMonth !== selectedMonth) {
           return false;
         }
       }
       if (timeFilter === 'daily' && selectedDate) {
-        const reqDate = new Date(req.dateIn).toISOString().slice(0, 10);
-        const filterDate = new Date(selectedDate).toISOString().slice(0, 10);
-        if (reqDate !== filterDate) {
+        const reqDate = parseDate(req.dateIn);
+        const filterDate = parseDate(selectedDate);
+        
+        const reqDateStr = !isNaN(reqDate.getTime()) ? reqDate.toISOString().slice(0, 10) : '';
+        const filterDateStr = !isNaN(filterDate.getTime()) ? filterDate.toISOString().slice(0, 10) : '';
+        
+        if (reqDateStr !== filterDateStr) {
           return false;
         }
       }
@@ -96,7 +101,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
       
       return true;
     })
-    .sort((a, b) => new Date(b.dateIn).getTime() - new Date(a.dateIn).getTime());
+    .sort((a, b) => parseDate(b.dateIn).getTime() - parseDate(a.dateIn).getTime());
 
   const handleDownloadExcel = () => {
     if (filteredRequests.length === 0) {
