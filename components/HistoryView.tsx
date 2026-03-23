@@ -68,10 +68,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
         const reqDate = parseDate(req.dateIn);
         const filterDate = parseDate(selectedDate);
         
-        const reqDateStr = !isNaN(reqDate.getTime()) ? reqDate.toISOString().slice(0, 10) : '';
-        const filterDateStr = !isNaN(filterDate.getTime()) ? filterDate.toISOString().slice(0, 10) : '';
-        
-        if (reqDateStr !== filterDateStr) {
+        if (isNaN(reqDate.getTime()) || isNaN(filterDate.getTime())) {
+          return false;
+        }
+
+        if (reqDate.getFullYear() !== filterDate.getFullYear() ||
+            reqDate.getMonth() !== filterDate.getMonth() ||
+            reqDate.getDate() !== filterDate.getDate()) {
           return false;
         }
       }
@@ -118,9 +121,9 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
         [t('vehicle')]: vehicle ? `${t(vehicle.vehiclesType)} ${vehicle.vehicleCompanyNumber ? `${vehicle.vehicleCompanyNumber}-` : ''}${vehicle.vehicleNumber}` : '',
         [t('driver')]: req.driverName,
         [t('dateIn')]: req.dateIn,
-        [t('timeIn')]: req.timeIn,
+        [t('timeIn')]: formatTime(req.timeIn),
         [t('dateOut')]: req.dateOut || '',
-        [t('timeOut')]: req.timeOut || '',
+        [t('timeOut')]: req.timeOut ? formatTime(req.timeOut) : '',
         [t('applicationStatus')]: req.applicationStatus || 'Pending',
         [t('workStatus')]: req.status,
         [t('rejectionReason')]: req.rejectionReason || '',

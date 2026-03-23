@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import type { TyreLog, Vehicle } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
-import { SearchIcon, EyeIcon, PencilIcon, ArrowsRightLeftIcon } from './Icons';
-import { formatVehicleInfo, formatDate, formatTime } from '../utils/formatters';
+import { SearchIcon, EyeIcon, PencilIcon, ArrowsRightLeftIcon, DownloadIcon } from './Icons';
+import { formatVehicleInfo, formatDate, formatTime, parseDate } from '../utils/formatters';
+import * as XLSX from 'xlsx';
 import { TyreDetailModal } from './TyreDetailModal';
 
 interface TyreLogHistoryViewProps {
@@ -25,6 +26,9 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [selectedSerial, setSelectedSerial] = useState<string | null>(null);
+  const [vehicleFilter, setVehicleFilter] = useState('');
+  const [tyreTypeFilter, setTyreTypeFilter] = useState('');
+  const [monthFilter, setMonthFilter] = useState('');
 
   useEffect(() => {
     if (initialSearchQuery) {
@@ -41,35 +45,88 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
     .filter(log => {
       const query = searchQuery.toLowerCase();
       
-      // If there's a selected vehicle, filter by it UNLESS there's a search query
-      // If there's a search query, we search across all logs
-      if (selectedVehicleId && !searchQuery && log.vehicleId !== selectedVehicleId) {
-        return false;
+      // Vehicle Filter
+      if (vehicleFilter && String(log.vehicleId) !== vehicleFilter) return false;
+
+      // Tyre Type Filter
+      if (tyreTypeFilter) {
+        const hasType = log.tyreDetails?.some(td => {
+          const condition = td.condition?.toLowerCase();
+          if (tyreTypeFilter === 'new') return condition === 'new';
+          if (tyreTypeFilter === 'used') return condition === 'used';
+          return false;
+        });
+        if (!hasType) return false;
+      }
+
+      // Month Filter
+      if (monthFilter) {
+        const logDate = parseDate(log.date);
+        const logMonth = !isNaN(logDate.getTime()) ? logDate.toISOString().slice(0, 7) : '';
+        if (logMonth !== monthFilter) return false;
+      }
+
+      // Search Query
+      if (searchQuery) {
+        const vehicleInfo = getVehicleInfo(log.vehicleId).toLowerCase();
+        const vehicleNum = String(log.vehicleNumber || '').toLowerCase();
+        const serialMatch = log.tyreDetails?.some(td => td.serialNumber?.toLowerCase().includes(query));
+        const vehicleMatch = vehicleInfo.includes(query) || vehicleNum.includes(query);
+        if (!vehicleMatch && !serialMatch) return false;
       }
       
-      const vehicleInfo = getVehicleInfo(log.vehicleId).toLowerCase();
-      const vehicleNum = String(log.vehicleNumber || '').toLowerCase();
-      const serialMatch = log.tyreDetails?.some(td => td.serialNumber?.toLowerCase().includes(query));
-      const vehicleMatch = vehicleInfo.includes(query) || vehicleNum.includes(query);
-      
-      return vehicleMatch || serialMatch;
+      return true;
     })
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime());
+
+  const handleDownloadExcel = () => {
+    const data = filteredLogs.map(log => ({
+      [t('date')]: log.date,
+      [t('vehicle')]: getVehicleInfo(log.vehicleId),
+      [t('driver')]: log.driverName,
+      [t('workshop')]: log.workshopLocation,
+      [t('tyreDetails')]: log.tyreDetails?.map(td => `${td.serialNumber} (${td.condition})`).join(', ') || ''
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'TyreLogs');
+    XLSX.writeFile(workbook, 'TyreLogHistory.xlsx');
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-xl font-bold text-gray-800">{t('tyreLogHistory')}</h2>
-        <div className="relative w-full md:w-80">
+        <button
+          onClick={handleDownloadExcel}
+          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+        >
+          <DownloadIcon className="h-5 w-5" />
+          {t('downloadExcel')}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div className="relative">
           <input
             type="text"
-            placeholder={t('searchByVehicleOrTyreSerial')}
+            placeholder={t('search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm"
           />
           <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
         </div>
+        <select value={vehicleFilter} onChange={(e) => setVehicleFilter(e.target.value)} className="p-2 border rounded-lg text-sm">
+          <option value="">{t('allVehicles')}</option>
+          {vehicles.map(v => <option key={v.id} value={v.id}>{formatVehicleInfo(v, t, v.id)}</option>)}
+        </select>
+        <select value={tyreTypeFilter} onChange={(e) => setTyreTypeFilter(e.target.value)} className="p-2 border rounded-lg text-sm">
+          <option value="">{t('allTyreTypes')}</option>
+          <option value="new">{t('tyreType_NEW')}</option>
+          <option value="used">{t('tyreType_Used')}</option>
+        </select>
+        <input type="month" value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)} className="p-2 border rounded-lg text-sm" />
       </div>
 
       <div className="space-y-4">

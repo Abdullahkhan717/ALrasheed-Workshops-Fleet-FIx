@@ -99,6 +99,15 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
     }
   };
 
+  // Debug: Check for duplicate IDs
+  React.useEffect(() => {
+    const ids = repairRequests.map(r => r.id);
+    const uniqueIds = new Set(ids);
+    if (ids.length !== uniqueIds.size) {
+      console.error("Duplicate repair request IDs found:", ids.filter((id, index) => ids.indexOf(id) !== index));
+    }
+  }, [repairRequests]);
+
   return (
     <div className="p-4 md:p-8">
       <h1 className="text-2xl md:text-4xl font-bold text-gray-800 mb-6">{title || t('pendingRequests')}</h1>
@@ -146,8 +155,8 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {repairRequests.length > 0 ? (
-              repairRequests.map(request => (
-                <tr key={request.id} className="hover:bg-gray-50">
+              repairRequests.map((request, index) => (
+                <tr key={`${request.id}-${index}`} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{request.id}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{getVehicleInfo(request.vehicleId)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{request.driverName}</td>
@@ -228,8 +237,8 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
       {/* Mobile View */}
       <div className="md:hidden space-y-4">
         {repairRequests.length > 0 ? (
-          repairRequests.map(request => (
-            <div key={request.id} className="bg-white rounded-xl shadow-md p-4 space-y-3 border border-gray-100">
+          repairRequests.map((request, index) => (
+            <div key={`${request.id}-${index}`} className="bg-white rounded-xl shadow-md p-4 space-y-3 border border-gray-100">
               <div className="flex justify-between items-start">
                 <div>
                   <span className="text-xs font-bold text-green-600 uppercase tracking-wider">{t('jobCardNo')} {request.id}</span>

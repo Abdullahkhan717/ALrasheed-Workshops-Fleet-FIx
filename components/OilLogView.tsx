@@ -38,6 +38,7 @@ export const OilLogView: React.FC = () => {
     { id: 'gearOil', label: t('oilLog_gearOil') },
     { id: 'deffranceOil', label: t('oilLog_deffranceOil') },
     { id: 'greasing', label: t('oilLog_greasing') },
+    { id: 'noOilChange', label: t('oilLog_noOilChange') },
     { id: 'other', label: t('oilLog_addNew') }
   ];
 
