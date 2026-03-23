@@ -430,7 +430,13 @@ const AppContent: React.FC = () => {
       case 'oilLog':
         return <OilLogView />;
       case 'oilChangeAlert':
-        return <OilChangeAlert />;
+        return <OilChangeAlert 
+          onVehicleClick={(vehicleId) => {
+            setSelectedHistoryVehicleId(vehicleId);
+            setHistoryTab('oil');
+            handleSetActiveView('history');
+          }}
+        />;
       case 'locations':
         return <LocationList onSelectLocation={(locName) => {
             setInitialLocationFilter(locName);

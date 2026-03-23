@@ -1,22 +1,36 @@
+export const parseDate = (dateStr: string) => {
+  if (!dateStr) return new Date(NaN);
+  
+  // Try parsing as ISO
+  let date = new Date(dateStr);
+  if (!isNaN(date.getTime())) return date;
+
+  // Try parsing DD-MM-YYYY or DD/MM/YYYY
+  const parts = dateStr.split(/[-/]/);
+  if (parts.length === 3) {
+    const day = parseInt(parts[0]);
+    const month = parseInt(parts[1]) - 1;
+    const year = parseInt(parts[2]);
+    return new Date(year, month, day);
+  }
+  return new Date(NaN);
+};
+
 export const formatDate = (dateStr: string) => {
   if (!dateStr) return '-';
-  try {
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return dateStr;
+  const date = parseDate(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
     
-    // If it's the Excel/Google Sheets "zero" date (1899-12-30), it's likely just time
-    if (date.getFullYear() === 1899 && date.getMonth() === 11 && date.getDate() === 30) {
-      return '';
-    }
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    
-    return `${day}-${month}-${year}`;
-  } catch (e) {
-    return dateStr;
+  // If it's the Excel/Google Sheets "zero" date (1899-12-30), it's likely just time
+  if (date.getFullYear() === 1899 && date.getMonth() === 11 && date.getDate() === 30) {
+    return '';
   }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  
+  return `${day}/${month}/${year}`;
 };
 
 export const formatTime = (timeStr: string) => {

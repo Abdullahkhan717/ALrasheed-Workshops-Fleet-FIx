@@ -3,15 +3,21 @@ import * as XLSX from 'xlsx';
 import { useData } from '../context/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatVehicleInfo } from '../utils/formatters';
-import { TruckIcon, CalendarIcon, MapPinIcon, UserIcon, DownloadIcon } from './Icons';
+import { TruckIcon, CalendarIcon, MapPinIcon, UserIcon, DownloadIcon, SearchIcon } from './Icons';
+import { formatDate, parseDate } from '../utils/formatters';
 
-export const OilChangeAlert: React.FC = () => {
+interface OilChangeAlertProps {
+  onVehicleClick?: (vehicleId: string) => void;
+}
+
+export const OilChangeAlert: React.FC<OilChangeAlertProps> = ({ onVehicleClick }) => {
   const { oilLogs, vehicles } = useData();
   const { t } = useTranslation();
 
   const [locationFilter, setLocationFilter] = useState('');
   const [conditionFilter, setConditionFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const now = new Date();
   const tenDaysAgo = new Date();
@@ -21,14 +27,16 @@ export const OilChangeAlert: React.FC = () => {
   const overdueVehicles = vehicles.map(vehicle => {
     const vehicleLogs = oilLogs.filter(log => log.vehicleId === vehicle.id);
     const latestLog = vehicleLogs.length > 0 
-      ? [...vehicleLogs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+      ? [...vehicleLogs].sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime())[0]
       : null;
     
     let daysSince = Infinity;
     if (latestLog) {
-      const logDate = new Date(latestLog.date);
-      const diffTime = Math.abs(now.getTime() - logDate.getTime());
-      daysSince = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const logDate = parseDate(latestLog.date);
+      if (!isNaN(logDate.getTime())) {
+        const diffTime = Math.abs(now.getTime() - logDate.getTime());
+        daysSince = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      }
     }
 
     return { vehicle, latestLog, daysSince };
@@ -39,7 +47,12 @@ export const OilChangeAlert: React.FC = () => {
     const matchesLocation = locationFilter ? vehicle.branchLocation === locationFilter : true;
     const matchesCondition = conditionFilter ? vehicle.condition === conditionFilter : true;
     const matchesType = typeFilter ? vehicle.vehiclesType === typeFilter : true;
-    return matchesLocation && matchesCondition && matchesType;
+    const matchesSearch = searchQuery ? (
+      String(vehicle.vehicleNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(vehicle.vehicleCompanyNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(vehicle.serialNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
+    ) : true;
+    return matchesLocation && matchesCondition && matchesType && matchesSearch;
   });
 
   // Sort by daysSince descending (most overdue first)
@@ -49,7 +62,7 @@ export const OilChangeAlert: React.FC = () => {
     const data = sortedOverdue.map(({ vehicle, latestLog, daysSince }) => ({
       Vehicle: vehicle.vehicleCompanyNumber || vehicle.vehicleNumber,
       DaysOverdue: daysSince === Infinity ? 'No History' : daysSince,
-      LastOilChangeDate: latestLog ? latestLog.date : 'N/A',
+      LastOilChangeDate: latestLog ? formatDate(latestLog.date) : 'N/A',
       Location: vehicle.branchLocation,
       Type: vehicle.vehiclesType,
       Mileage: latestLog ? latestLog.mileage : 'N/A',
@@ -60,15 +73,6 @@ export const OilChangeAlert: React.FC = () => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'OilChangeAlerts');
     XLSX.writeFile(workbook, 'OilChangeAlerts.xlsx');
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString();
-    } catch (e) {
-      return dateString;
-    }
   };
 
   const locations = Array.from(new Set(vehicles.map(v => v.branchLocation))).filter(Boolean);
@@ -94,7 +98,17 @@ export const OilChangeAlert: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div className="relative">
+          <SearchIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <input 
+            type="text" 
+            placeholder={t('search')} 
+            value={searchQuery} 
+            onChange={(e) => setSearchQuery(e.target.value)} 
+            className="w-full p-2 pl-10 border rounded-md"
+          />
+        </div>
         <select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} className="p-2 border rounded-md">
           <option value="">{t('allLocations')}</option>
           {locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
@@ -113,7 +127,11 @@ export const OilChangeAlert: React.FC = () => {
         {sortedOverdue.length > 0 ? (
           sortedOverdue.map(({ vehicle, latestLog, daysSince }) => {
             return (
-              <div key={vehicle.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
+              <div 
+                key={vehicle.id} 
+                onClick={() => onVehicleClick?.(vehicle.id)}
+                className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow cursor-pointer"
+              >
                 <div className="bg-red-600 p-4 text-white">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
