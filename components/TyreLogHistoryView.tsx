@@ -85,7 +85,7 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
       [t('vehicle')]: getVehicleInfo(log.vehicleId),
       [t('driver')]: log.driverName,
       [t('workshop')]: log.workshopLocation,
-      [t('tyreDetails')]: log.tyreDetails?.map(td => `${td.serialNumber} (${td.condition})`).join(', ') || ''
+      [t('tyreDetails')]: log.tyreDetails?.map(td => `${td.serialNumber} (${td.condition})${td.fromVehicle ? ` - ${t('fromVehicle')}: ${td.fromVehicle}` : ''}`).join(', ') || ''
     }));
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();

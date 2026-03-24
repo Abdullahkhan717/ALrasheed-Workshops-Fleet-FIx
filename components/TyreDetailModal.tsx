@@ -50,7 +50,12 @@ export const TyreDetailModal: React.FC<TyreDetailModalProps> = ({
 
     history.forEach((log, index) => {
       const vehicleInfo = getVehicleInfo(log.vehicleId);
-      message += `${index + 1}. ${formatDate(log.date)} - ${vehicleInfo} (${log.workshopLocation})\n`;
+      const td = log.tyreDetails.find(d => d.serialNumber === serialNumber);
+      message += `${index + 1}. ${formatDate(log.date)} - ${vehicleInfo} (${log.workshopLocation})`;
+      if (td?.fromVehicle) {
+        message += ` - ${t('fromVehicle')}: ${td.fromVehicle}`;
+      }
+      message += `\n`;
     });
 
     const encodedMessage = encodeURIComponent(message);
@@ -117,11 +122,14 @@ export const TyreDetailModal: React.FC<TyreDetailModalProps> = ({
                       <p className="font-bold text-gray-900">{getVehicleInfo(log.vehicleId)}</p>
                       <span className="text-[10px] bg-gray-50 px-2 py-1 rounded text-gray-500 font-medium">{formatDate(log.date)}</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
-                      <div><span className="text-gray-400">{t('workshop')}:</span> {log.workshopLocation}</div>
-                      <div><span className="text-gray-400">{t('driver')}:</span> {log.driverName}</div>
-                      <div><span className="text-gray-400">{t('mileage')}:</span> {log.mileage}</div>
-                    </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
+                        <div><span className="text-gray-400">{t('workshop')}:</span> {log.workshopLocation}</div>
+                        <div><span className="text-gray-400">{t('driver')}:</span> {log.driverName}</div>
+                        <div><span className="text-gray-400">{t('mileage')}:</span> {log.mileage}</div>
+                        {log.tyreDetails.find(td => td.serialNumber === serialNumber)?.fromVehicle && (
+                          <div className="col-span-2"><span className="text-gray-400">{t('fromVehicle')}:</span> {log.tyreDetails.find(td => td.serialNumber === serialNumber)?.fromVehicle}</div>
+                        )}
+                      </div>
                   </div>
                 </div>
               ))}
