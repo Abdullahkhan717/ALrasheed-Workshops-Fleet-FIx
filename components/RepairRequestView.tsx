@@ -732,6 +732,26 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
                         <option value="addNew" className="text-green-600 font-bold">+ {t('addNewLocation')}</option>
                     </select>
                 </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('date')}</label>
+                    <input
+                        type="date"
+                        value={customDate}
+                        onChange={(e) => setCustomDate(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                        required
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('time')}</label>
+                    <input
+                        type="time"
+                        value={customTime}
+                        onChange={(e) => setCustomTime(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                        required
+                    />
+                </div>
             </div>
         )}
         {selectedVehicle && requestType === 'repair' && (
