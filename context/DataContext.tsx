@@ -188,7 +188,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
               console.error(`Failed to parse oil log ${log.id}:`, e);
               return { ...log, oilTypes: [], filters: [] } as OilLog;
           }
-      });
+      }).filter((log, index, self) => index === self.findIndex((l) => l.id === log.id && l.id !== ''));
       setOilLogs(parsedOilLogs);
       
       const rawTyreLogs = data[tlKey] || [];

@@ -93,8 +93,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
         const matchesDriver = String(req.driverName || '').toLowerCase().includes(query);
         const matchesId = String(req.id || '').toLowerCase().includes(query);
         const matchesWorkshop = workshop?.subName?.toLowerCase().includes(query);
-        const matchesWorkDone = req.workDone?.toLowerCase().includes(query);
-        const matchesPartsUsed = req.partsUsed?.toLowerCase().includes(query) || 
+        const matchesWorkDone = typeof req.workDone === 'string' && req.workDone.toLowerCase().includes(query);
+        const matchesPartsUsed = (typeof req.partsUsed === 'string' && req.partsUsed.toLowerCase().includes(query)) || 
                                req.faults.some(f => f.partsUsed?.some(p => p.name?.toLowerCase().includes(query)));
         
         if (!matchesVehicle && !matchesDriver && !matchesId && !matchesWorkshop && !matchesWorkDone && !matchesPartsUsed) {

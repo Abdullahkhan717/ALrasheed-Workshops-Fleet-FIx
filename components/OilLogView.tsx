@@ -103,8 +103,8 @@ export const OilLogView: React.FC = () => {
         location: newLog.location,
         oilTypes: JSON.stringify(newLog.oilTypes),
         filters: JSON.stringify(newLog.filters),
-        date: newLog.date,
-        time: newLog.time
+        date: now.toLocaleDateString(),
+        time: now.toLocaleTimeString()
       };
 
       await createData('OilLogs', payload);

@@ -35,17 +35,11 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
     return true;
   }).sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime());
 
-  // Debug: Check for duplicate IDs
-  useEffect(() => {
-    const ids = filteredLogs.map(l => l.id);
-    const uniqueIds = new Set(ids);
-    if (ids.length !== uniqueIds.size) {
-      console.error("Duplicate log IDs found:", ids.filter((id, index) => ids.indexOf(id) !== index));
-    }
-  }, [filteredLogs]);
+  // Deduplicate logs by ID
+  const uniqueFilteredLogs = Array.from(new Map(filteredLogs.map(log => [log.id, log])).values());
 
   const handleDownloadExcel = () => {
-    const data = filteredLogs.map(log => {
+    const data = uniqueFilteredLogs.map(log => {
       const vehicle = vehicles.find(v => v.id === log.vehicleId);
       return {
         [t('date')]: log.date,
@@ -120,8 +114,8 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredLogs.length > 0 ? (
-          filteredLogs
+        {uniqueFilteredLogs.length > 0 ? (
+          uniqueFilteredLogs
             .map((log, index) => {
               const vehicle = vehicles.find(v => v.id === log.vehicleId);
               return (

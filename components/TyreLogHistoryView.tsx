@@ -4,6 +4,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { SearchIcon, EyeIcon, PencilIcon, ArrowsRightLeftIcon, DownloadIcon } from './Icons';
 import { formatVehicleInfo, formatDate, formatTime, parseDate } from '../utils/formatters';
 import * as XLSX from 'xlsx';
+import { SearchableVehicleSelect } from './SearchableVehicleSelect';
 import { TyreDetailModal } from './TyreDetailModal';
 
 interface TyreLogHistoryViewProps {
@@ -26,9 +27,9 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [selectedSerial, setSelectedSerial] = useState<string | null>(null);
-  const [vehicleFilter, setVehicleFilter] = useState('');
   const [tyreTypeFilter, setTyreTypeFilter] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
+  const [selectedVehicleIdFilter, setSelectedVehicleIdFilter] = useState(selectedVehicleId || '');
 
   useEffect(() => {
     if (initialSearchQuery) {
@@ -46,18 +47,7 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
       const query = searchQuery.toLowerCase();
       
       // Vehicle Filter
-      if (vehicleFilter && String(log.vehicleId) !== vehicleFilter) return false;
-
-      // Tyre Type Filter
-      if (tyreTypeFilter) {
-        const hasType = log.tyreDetails?.some(td => {
-          const condition = td.condition?.toLowerCase();
-          if (tyreTypeFilter === 'new') return condition === 'new';
-          if (tyreTypeFilter === 'used') return condition === 'used';
-          return false;
-        });
-        if (!hasType) return false;
-      }
+      if (selectedVehicleIdFilter && String(log.vehicleId) !== String(selectedVehicleIdFilter)) return false;
 
       // Month Filter
       if (monthFilter) {
@@ -117,10 +107,12 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
           />
           <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
         </div>
-        <select value={vehicleFilter} onChange={(e) => setVehicleFilter(e.target.value)} className="p-2 border rounded-lg text-sm">
-          <option value="">{t('allVehicles')}</option>
-          {vehicles.map(v => <option key={v.id} value={v.id}>{formatVehicleInfo(v, t, v.id)}</option>)}
-        </select>
+        <SearchableVehicleSelect
+          vehicles={vehicles}
+          value={selectedVehicleIdFilter}
+          onChange={setSelectedVehicleIdFilter}
+          placeholder={t('allVehicles')}
+        />
         <select value={tyreTypeFilter} onChange={(e) => setTyreTypeFilter(e.target.value)} className="p-2 border rounded-lg text-sm">
           <option value="">{t('allTyreTypes')}</option>
           <option value="new">{t('tyreType_NEW')}</option>

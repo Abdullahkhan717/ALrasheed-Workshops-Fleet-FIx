@@ -48,7 +48,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
   const [selectedVehicleId, setSelectedVehicleId] = useState('');
   const [driverName, setDriverName] = useState('');
   const [mileage, setMileage] = useState('');
-  const [purpose, setPurpose] = useState<'Repairing' | 'preparing for work' | 'General Checking' | 'Other' | 'Oil Change' | 'Tyre Change'>(
+  const [purpose, setPurpose] = useState<'Repairing' | 'preparing for work' | 'General Checking' | 'Other' | 'Oil Change' | 'Tyre Change' | 'Passing'>(
     initialRequestType === 'tyre' ? 'Tyre Change' : (initialRequestType === 'oil' ? 'Oil Change' : 'Repairing')
   );
   const [requestType, setRequestType] = useState<'repair' | 'oil' | 'tyre'>(initialRequestType || 'repair');
@@ -204,7 +204,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
       const vehicle = vehicles.find(v => v.id === selectedVehicleId);
       const truckId = vehicle ? (vehicle.vehicleCompanyNumber || vehicle.vehicleNumber) : selectedVehicleId;
       
-      const now = new Date();
+      const now = new Date(`${customDate}T${customTime}`);
       const oilLogPayload = {
         id: generateId(),
         vehicleId: selectedVehicleId, // Internal ID for app logic
@@ -792,6 +792,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
                         <option value="preparing for work">{t('purpose_preparing_for_work')}</option>
                         <option value="General Checking">{t('purpose_general_checking')}</option>
                         <option value="Other">{t('purpose_other')}</option>
+                        <option value="Passing">{t('purpose_passing')}</option>
                     </select>
                 </div>
 
@@ -995,28 +996,6 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
                             required
                         />
                     </div>
-                    <div>
-                        <label htmlFor="oilDate" className="block text-sm font-medium text-gray-700">{t('date')}</label>
-                        <input
-                            type="date"
-                            id="oilDate"
-                            value={customDate}
-                            onChange={(e) => setCustomDate(e.target.value)}
-                            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="oilTime" className="block text-sm font-medium text-gray-700">{t('time')}</label>
-                        <input
-                            type="time"
-                            id="oilTime"
-                            value={customTime}
-                            onChange={(e) => setCustomTime(e.target.value)}
-                            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                            required
-                        />
-                    </div>
                 </div>
             </div>
         )}
@@ -1083,28 +1062,6 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
                             value={tyreMechanicName}
                             onChange={(e) => setTyreMechanicName(e.target.value)}
                             className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="tyreDate" className="block text-sm font-medium text-gray-700">{t('date')}</label>
-                        <input
-                            type="date"
-                            id="tyreDate"
-                            value={customDate}
-                            onChange={(e) => setCustomDate(e.target.value)}
-                            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="tyreTime" className="block text-sm font-medium text-gray-700">{t('time')}</label>
-                        <input
-                            type="time"
-                            id="tyreTime"
-                            value={customTime}
-                            onChange={(e) => setCustomTime(e.target.value)}
-                            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                            required
                         />
                     </div>
                 </div>
