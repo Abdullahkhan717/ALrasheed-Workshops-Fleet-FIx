@@ -26,6 +26,14 @@ export const formatDate = (dateStr: string) => {
     return '';
   }
 
+  // Check if it's an ISO string (contains T and Z or offset)
+  if (dateStr.includes('T')) {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return `${day}/${month}/${year}`;
+  }
+
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');

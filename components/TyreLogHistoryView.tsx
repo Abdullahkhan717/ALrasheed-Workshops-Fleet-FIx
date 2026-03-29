@@ -29,7 +29,7 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
   const [selectedSerial, setSelectedSerial] = useState<string | null>(null);
   const [tyreTypeFilter, setTyreTypeFilter] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
-  const [selectedVehicleIdFilter, setSelectedVehicleIdFilter] = useState(selectedVehicleId || '');
+  const [selectedVehicleIdFilter, setSelectedVehicleIdFilter] = useState('');
 
   useEffect(() => {
     if (initialSearchQuery) {
@@ -54,6 +54,12 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
         const logDate = parseDate(log.date);
         const logMonth = !isNaN(logDate.getTime()) ? logDate.toISOString().slice(0, 7) : '';
         if (logMonth !== monthFilter) return false;
+      }
+
+      // Tyre Type Filter
+      if (tyreTypeFilter) {
+        const filterValue = tyreTypeFilter.toLowerCase();
+        if (!log.tyreDetails?.some(td => td.condition?.toLowerCase() === filterValue)) return false;
       }
 
       // Search Query
@@ -99,7 +105,17 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder={t('search')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm"
+          />
+          <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+        </div>
         <SearchableVehicleSelect
           vehicles={vehicles}
           value={selectedVehicleIdFilter}
