@@ -45,8 +45,20 @@ export const TyreDetailModal: React.FC<TyreDetailModalProps> = ({
     message += `*${t('size')}:* ${tyreDetail.size}\n`;
     message += `*${t('condition')}:* ${tyreDetail.condition === 'NEW' || tyreDetail.condition === 'New' ? t('tyreType_NEW') : 
                              tyreDetail.condition === 'Used' ? t('tyreType_Used') : 
-                             tyreDetail.condition === 'Repaired' ? t('tyreType_Repaired') : tyreDetail.condition}\n\n`;
-    message += `*${t('history')}:*\n`;
+                             tyreDetail.condition === 'Repaired' ? t('tyreType_Repaired') : tyreDetail.condition}\n`;
+    message += `*${t('vehicle')}:* ${getVehicleInfo(latestLog.vehicleId)}\n`;
+    message += `*${t('date')}:* ${formatDate(latestLog.date)}\n`;
+    message += `*${t('workshop')}:* ${latestLog.workshopLocation}\n`;
+    message += `*${t('driver')}:* ${latestLog.driverName}\n`;
+    message += `*${t('mileage')}:* ${latestLog.mileage}\n`;
+    if (tyreDetail.fromVehicle) {
+      message += `*${t('fromVehicle')}:* ${tyreDetail.fromVehicle}\n`;
+    }
+    if (tyreDetail.remarks) {
+      message += `*${t('remarks')}:* ${tyreDetail.remarks}\n`;
+    }
+    
+    message += `\n*${t('history')}:*\n`;
 
     history.forEach((log, index) => {
       const vehicleInfo = getVehicleInfo(log.vehicleId);
