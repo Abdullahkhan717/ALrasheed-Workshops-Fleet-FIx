@@ -3,7 +3,7 @@ import type { Vehicle, RepairRequest, OilLog } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAuth } from '../context/AuthContext';
 import { WhatsappIcon } from './Icons';
-import { formatVehicleInfo } from '../utils/formatters';
+import { formatVehicleInfo, formatDate } from '../utils/formatters';
 
 interface VehicleDetailsViewProps {
   vehicle: Vehicle;
@@ -156,7 +156,7 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
               .map(log => (
                 <div key={log.id} className="bg-white p-4 rounded-lg border border-green-100 shadow-sm">
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-sm font-bold text-green-600">{log.date}</span>
+                    <span className="text-sm font-bold text-green-600">{formatDate(log.date)}</span>
                     <span className="text-xs text-gray-500">{log.time}</span>
                   </div>
                   <p className="text-sm text-gray-600 mb-1"><strong>{t('driver')}:</strong> {log.driverName}</p>
