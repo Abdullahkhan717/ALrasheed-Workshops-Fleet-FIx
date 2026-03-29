@@ -60,7 +60,10 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
       if (searchQuery) {
         const vehicleInfo = getVehicleInfo(log.vehicleId).toLowerCase();
         const vehicleNum = String(log.vehicleNumber || '').toLowerCase();
-        const serialMatch = log.tyreDetails?.some(td => td.serialNumber?.toLowerCase().includes(query));
+        const serialMatch = log.tyreDetails?.some(td => 
+          td.serialNumber?.toLowerCase().includes(query) || 
+          td.remarks?.toLowerCase().includes(query)
+        );
         const vehicleMatch = vehicleInfo.includes(query) || vehicleNum.includes(query);
         if (!vehicleMatch && !serialMatch) return false;
       }
@@ -181,6 +184,7 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
                           <div><span className="text-gray-400">{t('brand')}:</span> {td.brand || '-'}</div>
                           <div><span className="text-gray-400">{t('size')}:</span> {td.size}</div>
                           <div><span className="text-gray-400">{t('serial')}:</span> <span className="font-mono font-bold">{td.serialNumber}</span></div>
+                          {td.remarks && <div className="col-span-2"><span className="text-gray-400">{t('remarks')}:</span> {td.remarks}</div>}
                         </div>
                         {td.fromVehicle && (
                           <div className="mt-1 text-[10px] text-gray-500 italic">

@@ -129,6 +129,9 @@ export const TyreDetailModal: React.FC<TyreDetailModalProps> = ({
                         {log.tyreDetails.find(td => td.serialNumber === serialNumber)?.fromVehicle && (
                           <div className="col-span-2"><span className="text-gray-400">{t('fromVehicle')}:</span> {log.tyreDetails.find(td => td.serialNumber === serialNumber)?.fromVehicle}</div>
                         )}
+                        {log.tyreDetails.find(td => td.serialNumber === serialNumber)?.remarks && (
+                          <div className="col-span-2"><span className="text-gray-400">{t('remarks')}:</span> {log.tyreDetails.find(td => td.serialNumber === serialNumber)?.remarks}</div>
+                        )}
                       </div>
                   </div>
                 </div>
