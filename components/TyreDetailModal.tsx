@@ -46,29 +46,20 @@ export const TyreDetailModal: React.FC<TyreDetailModalProps> = ({
     message += `*${t('condition')}:* ${tyreDetail.condition === 'NEW' || tyreDetail.condition === 'New' ? t('tyreType_NEW') : 
                              tyreDetail.condition === 'Used' ? t('tyreType_Used') : 
                              tyreDetail.condition === 'Repaired' ? t('tyreType_Repaired') : tyreDetail.condition}\n`;
+    
+    // Latest log details
     message += `*${t('vehicle')}:* ${getVehicleInfo(latestLog.vehicleId)}\n`;
     message += `*${t('date')}:* ${formatDate(latestLog.date)}\n`;
     message += `*${t('workshop')}:* ${latestLog.workshopLocation}\n`;
     message += `*${t('driver')}:* ${latestLog.driverName}\n`;
     message += `*${t('mileage')}:* ${latestLog.mileage}\n`;
+    
     if (tyreDetail.fromVehicle) {
       message += `*${t('fromVehicle')}:* ${tyreDetail.fromVehicle}\n`;
     }
     if (tyreDetail.remarks) {
       message += `*${t('remarks')}:* ${tyreDetail.remarks}\n`;
     }
-    
-    message += `\n*${t('history')}:*\n`;
-
-    history.forEach((log, index) => {
-      const vehicleInfo = getVehicleInfo(log.vehicleId);
-      const td = log.tyreDetails.find(d => d.serialNumber === serialNumber);
-      message += `${index + 1}. ${formatDate(log.date)} - ${vehicleInfo} (${log.workshopLocation})`;
-      if (td?.fromVehicle) {
-        message += ` - ${t('fromVehicle')}: ${td.fromVehicle}`;
-      }
-      message += `\n`;
-    });
 
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
