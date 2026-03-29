@@ -79,13 +79,24 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
     .sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime());
 
   const handleDownloadExcel = () => {
-    const data = filteredLogs.map(log => ({
-      [t('date')]: log.date,
-      [t('vehicle')]: getVehicleInfo(log.vehicleId),
-      [t('driver')]: log.driverName,
-      [t('workshop')]: log.workshopLocation,
-      [t('tyreDetails')]: log.tyreDetails?.map(td => `${td.serialNumber} (${td.condition})${td.fromVehicle ? ` - ${t('fromVehicle')}: ${td.fromVehicle}` : ''}`).join(', ') || ''
-    }));
+    const data: any[] = [];
+    filteredLogs.forEach(log => {
+      log.tyreDetails?.forEach(td => {
+        data.push({
+          [t('serialNumber')]: td.serialNumber,
+          [t('brand')]: td.brand,
+          [t('size')]: td.size,
+          [t('condition')]: td.condition,
+          [t('vehicle')]: getVehicleInfo(log.vehicleId),
+          [t('date')]: formatDate(log.date),
+          [t('workshop')]: log.workshopLocation,
+          [t('driver')]: log.driverName,
+          [t('mileage')]: log.mileage,
+          [t('fromVehicle')]: td.fromVehicle || '',
+          [t('remarks')]: td.remarks || ''
+        });
+      });
+    });
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'TyreLogs');
