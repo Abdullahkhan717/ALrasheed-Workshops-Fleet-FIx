@@ -92,10 +92,10 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
         
         const matchesDriver = String(req.driverName || '').toLowerCase().includes(query);
         const matchesId = String(req.id || '').toLowerCase().includes(query);
-        const matchesWorkshop = workshop?.subName?.toLowerCase().includes(query);
+        const matchesWorkshop = String(workshop?.subName || '').toLowerCase().includes(query);
         const matchesWorkDone = typeof req.workDone === 'string' && req.workDone.toLowerCase().includes(query);
         const matchesPartsUsed = (typeof req.partsUsed === 'string' && req.partsUsed.toLowerCase().includes(query)) || 
-                               req.faults.some(f => f.partsUsed?.some(p => p.name?.toLowerCase().includes(query)));
+                               req.faults.some(f => f.partsUsed?.some(p => String(p.name || '').toLowerCase().includes(query)));
         
         if (!matchesVehicle && !matchesDriver && !matchesId && !matchesWorkshop && !matchesWorkDone && !matchesPartsUsed) {
           return false;
@@ -283,14 +283,14 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
                           req.applicationStatus === 'Rejected' ? 'bg-orange-100 text-orange-800' :
                           'bg-red-100 text-red-800'
                       }`}>
-                        {t(req.applicationStatus?.toLowerCase() as any || 'pending')}
+                        {t(String(req.applicationStatus || 'pending').toLowerCase() as any)}
                       </span>
                       <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${
                           req.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
                           req.applicationStatus === 'Cancelled' ? 'bg-red-100 text-red-800' :
                           'bg-green-100 text-green-800'
                       }`}>
-                        {t(req.status.toLowerCase() as any)}
+                        {t(String(req.status || '').toLowerCase() as any)}
                       </span>
                     </div>
                   </div>
@@ -311,14 +311,14 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
                         req.applicationStatus === 'Rejected' ? 'bg-orange-100 text-orange-800' :
                         'bg-red-100 text-red-800'
                     }`}>
-                      {t(req.applicationStatus?.toLowerCase() as any || 'pending')}
+                      {t(String(req.applicationStatus || 'pending').toLowerCase() as any)}
                     </span>
                     <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase ${
                         req.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
                         req.applicationStatus === 'Cancelled' ? 'bg-red-100 text-red-800' :
                         'bg-green-100 text-green-800'
                     }`}>
-                      {t(req.status.toLowerCase() as any)}
+                      {t(String(req.status || '').toLowerCase() as any)}
                     </span>
                 </div>
               </div>
@@ -327,7 +327,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
                     <span className="text-gray-500 w-24 flex-shrink-0">{t('purpose')}:</span>
-                    <span className="font-medium text-gray-800">{t(`purpose_${req.purpose.toLowerCase().replace(/ /g, '_')}`)}</span>
+                    <span className="font-medium text-gray-800">{t(`purpose_${String(req.purpose || '').toLowerCase().replace(/ /g, '_')}`)}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <span className="text-gray-500 w-24 flex-shrink-0">{t('driver')}:</span>

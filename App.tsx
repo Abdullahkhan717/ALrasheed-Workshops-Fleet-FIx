@@ -176,7 +176,7 @@ const AppContent: React.FC = () => {
     if (!searchTyreQuery.trim()) return;
 
     const found = tyreLogs.some(log => 
-      log.tyreDetails?.some(td => td.serialNumber?.toLowerCase().includes(searchTyreQuery.toLowerCase()))
+      log.tyreDetails?.some(td => String(td.serialNumber || '').toLowerCase().includes(searchTyreQuery.toLowerCase()))
     );
 
     if (found) {
@@ -640,11 +640,11 @@ const AppContent: React.FC = () => {
                                     <div className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-b-md shadow-lg z-20 max-h-60 overflow-y-auto">
                                       {tyreLogs
                                         .filter(log => 
-                                          log.tyreDetails?.some(td => td.serialNumber?.toLowerCase().includes(searchTyreQuery.toLowerCase()))
+                                          log.tyreDetails?.some(td => String(td.serialNumber || '').toLowerCase().includes(searchTyreQuery.toLowerCase()))
                                         )
                                         .slice(0, 10)
                                         .map((log, index) => {
-                                          const matchingTyre = log.tyreDetails.find(td => td.serialNumber?.toLowerCase().includes(searchTyreQuery.toLowerCase()));
+                                          const matchingTyre = log.tyreDetails.find(td => String(td.serialNumber || '').toLowerCase().includes(searchTyreQuery.toLowerCase()));
                                           return (
                                             <div 
                                               key={`${log.id}-${index}`} 
@@ -664,7 +664,7 @@ const AppContent: React.FC = () => {
                                         })
                                       }
                                       {tyreLogs.filter(log => 
-                                          log.tyreDetails?.some(td => td.serialNumber?.toLowerCase().includes(searchTyreQuery.toLowerCase()))
+                                          log.tyreDetails?.some(td => String(td.serialNumber || '').toLowerCase().includes(searchTyreQuery.toLowerCase()))
                                         ).length === 0 && (
                                         <div className="p-3 text-center text-gray-500">
                                           {t('noTyreFound')}
