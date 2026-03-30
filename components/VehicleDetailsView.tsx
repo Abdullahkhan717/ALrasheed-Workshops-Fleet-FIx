@@ -3,7 +3,7 @@ import type { Vehicle, RepairRequest, OilLog } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAuth } from '../context/AuthContext';
 import { WhatsappIcon } from './Icons';
-import { formatVehicleInfo, formatDate, formatTime } from '../utils/formatters';
+import { formatVehicleInfo, formatDate, formatTime, parseDate } from '../utils/formatters';
 
 interface VehicleDetailsViewProps {
   vehicle: Vehicle;
@@ -115,7 +115,7 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
           {repairRequests.filter(r => r.vehicleId === vehicle.id).length > 0 ? (
             repairRequests
               .filter(r => r.vehicleId === vehicle.id)
-              .sort((a, b) => new Date(b.dateIn).getTime() - new Date(a.dateIn).getTime())
+              .sort((a, b) => parseDate(b.dateIn).getTime() - parseDate(a.dateIn).getTime())
               .map(request => (
                 <div key={request.id} className="bg-white p-4 rounded-lg border border-green-100 shadow-sm">
                   <div className="flex justify-between items-start mb-2">
@@ -129,7 +129,7 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
                       {t(request.status.toLowerCase() as any)}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-1"><strong>{t('dateIn')}:</strong> {request.dateIn}</p>
+                  <p className="text-sm text-gray-600 mb-1"><strong>{t('dateIn')}:</strong> {formatDate(request.dateIn)}</p>
                   <p className="text-sm text-gray-600 mb-1"><strong>{t('purpose')}:</strong> {t(request.purpose.toLowerCase().replace(/ /g, '') as any)}</p>
                   <div className="mt-2">
                     <p className="text-xs font-bold text-gray-500 uppercase mb-1">{t('faults')}:</p>
@@ -152,7 +152,7 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
           {oilLogs.filter(o => o.vehicleId === vehicle.id).length > 0 ? (
             oilLogs
               .filter(o => o.vehicleId === vehicle.id)
-              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+              .sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime())
               .map(log => (
                 <div key={log.id} className="bg-white p-4 rounded-lg border border-green-100 shadow-sm">
                   <div className="flex justify-between items-start mb-2">

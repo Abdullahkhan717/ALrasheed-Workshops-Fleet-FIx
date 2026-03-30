@@ -24,13 +24,13 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
     const vehicleInfo = vehicle ? `${vehicle.vehicleCompanyNumber || ''} ${vehicle.vehicleNumber || ''}`.toLowerCase() : '';
     
     if (vehicleFilter && String(log.vehicleId) !== vehicleFilter) return false;
-    if (oilTypeFilter && !log.oilTypes?.some(ot => ot.toLowerCase().includes(oilTypeFilter.toLowerCase()))) return false;
-    if (filterTypeFilter && !log.filters?.some(f => f.toLowerCase().includes(filterTypeFilter.toLowerCase()))) return false;
+    if (oilTypeFilter && !log.oilTypes?.some(ot => String(ot || '').toLowerCase().includes(oilTypeFilter.toLowerCase()))) return false;
+    if (filterTypeFilter && !log.filters?.some(f => String(f || '').toLowerCase().includes(filterTypeFilter.toLowerCase()))) return false;
     
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      if (!vehicleInfo.includes(query) && !log.driverName?.toLowerCase().includes(query)) return false;
-    }
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        if (!vehicleInfo.includes(query) && !String(log.driverName || '').toLowerCase().includes(query)) return false;
+      }
     
     return true;
   }).sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime());

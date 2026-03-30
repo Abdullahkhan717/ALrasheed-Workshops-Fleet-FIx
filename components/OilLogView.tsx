@@ -103,7 +103,7 @@ export const OilLogView: React.FC = () => {
         location: newLog.location,
         oilTypes: JSON.stringify(newLog.oilTypes),
         filters: JSON.stringify(newLog.filters),
-        date: now.toLocaleDateString(),
+        date: `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`,
         time: now.toLocaleTimeString()
       };
 

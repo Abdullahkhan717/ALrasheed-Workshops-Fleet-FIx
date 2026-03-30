@@ -19,7 +19,7 @@ export const TransferList: React.FC = () => {
 
   const filteredRequests = transferRequests.filter(req => {
     if (filter === 'all') return true;
-    return req.status.toLowerCase() === filter;
+    return String(req.status || '').toLowerCase() === filter;
   }).sort((a, b) => new Date(b.dateRequested).getTime() - new Date(a.dateRequested).getTime());
 
   const handleAction = async (requestId: string, status: 'Accepted' | 'Rejected') => {
@@ -86,7 +86,7 @@ export const TransferList: React.FC = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (String(status || '').toLowerCase()) {
       case 'pending':
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -215,7 +215,7 @@ export const TransferList: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right rtl:text-left text-sm font-medium">
                         <div className="flex justify-end space-x-2 rtl:space-x-reverse">
-                          {req.status.toLowerCase() === 'pending' && (currentUser?.location === req.toLocation || currentUser?.role === 'admin') && (
+                          {String(req.status || '').toLowerCase() === 'pending' && (currentUser?.location === req.toLocation || currentUser?.role === 'admin') && (
                             <>
                               <button
                                 onClick={() => handleAction(req.id, 'Accepted')}
@@ -234,7 +234,7 @@ export const TransferList: React.FC = () => {
                             </>
                           )}
                           
-                          {req.status.toLowerCase() === 'pending' && (currentUser?.id === req.requesterId || currentUser?.role === 'admin' || currentUser?.location === req.fromLocation) && (
+                          {String(req.status || '').toLowerCase() === 'pending' && (currentUser?.id === req.requesterId || currentUser?.role === 'admin' || currentUser?.location === req.fromLocation) && (
                             <button
                               onClick={() => handleCancel(req.id)}
                               className="p-1.5 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200 transition"
@@ -244,7 +244,7 @@ export const TransferList: React.FC = () => {
                             </button>
                           )}
 
-                          {req.status.toLowerCase() !== 'pending' && (
+                          {String(req.status || '').toLowerCase() !== 'pending' && (
                             <button className="text-green-600 hover:text-green-800">
                               {t('viewDetails')}
                             </button>

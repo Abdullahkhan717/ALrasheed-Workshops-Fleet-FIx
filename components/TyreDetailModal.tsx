@@ -39,26 +39,26 @@ export const TyreDetailModal: React.FC<TyreDetailModalProps> = ({
   const handleWhatsAppShare = () => {
     if (!tyreDetail) return;
 
-    let message = `*${t('tyreHistory')}*\n`;
-    message += `*${t('serialNumber')}:* ${serialNumber}\n`;
-    message += `*${t('brand')}:* ${tyreDetail.brand || '-'}\n`;
-    message += `*${t('size')}:* ${tyreDetail.size}\n`;
-    message += `*${t('condition')}:* ${tyreDetail.condition === 'NEW' || tyreDetail.condition === 'New' ? t('tyreType_NEW') : 
-                             tyreDetail.condition === 'Used' ? t('tyreType_Used') : 
-                             tyreDetail.condition === 'Repaired' ? t('tyreType_Repaired') : tyreDetail.condition}\n`;
-    
-    // Latest log details
-    message += `*${t('vehicle')}:* ${getVehicleInfo(latestLog.vehicleId)}\n`;
-    message += `*${t('date')}:* ${formatDate(latestLog.date)}\n`;
-    message += `*${t('workshop')}:* ${latestLog.workshopLocation}\n`;
-    message += `*${t('driver')}:* ${latestLog.driverName}\n`;
-    message += `*${t('mileage')}:* ${latestLog.mileage}\n`;
+    const condition = tyreDetail.condition === 'NEW' || tyreDetail.condition === 'New' ? t('tyreType_NEW') : 
+                     tyreDetail.condition === 'Used' ? t('tyreType_Used') : 
+                     tyreDetail.condition === 'Repaired' ? t('tyreType_Repaired') : tyreDetail.condition;
+
+    let message = `${t('tyreHistory')}\n`;
+    message += `${t('serialNumber')}: ${serialNumber}\n`;
+    message += `${t('brand')}: ${tyreDetail.brand || '-'}\n`;
+    message += `${t('size')}: ${tyreDetail.size}\n`;
+    message += `${t('condition')}: ${condition}\n`;
+    message += `${getVehicleInfo(latestLog.vehicleId)}\n`;
+    message += `${t('date')}: ${formatDate(latestLog.date)}\n`;
+    message += `${t('workshop')}: ${latestLog.workshopLocation}\n`;
+    message += `${t('driver')}/${t('complainer') || 'complainer'}: ${latestLog.driverName}\n`;
+    message += `${t('mileage')} / KM: ${latestLog.mileage}\n`;
     
     if (tyreDetail.fromVehicle) {
-      message += `*${t('fromVehicle')}:* ${tyreDetail.fromVehicle}\n`;
+      message += `${t('fromVehicle')}: ${tyreDetail.fromVehicle}\n`;
     }
     if (tyreDetail.remarks) {
-      message += `*${t('remarks')}:* ${tyreDetail.remarks}\n`;
+      message += `${t('remarks')}: ${tyreDetail.remarks}\n`;
     }
 
     const encodedMessage = encodeURIComponent(message);

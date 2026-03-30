@@ -37,6 +37,14 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
     }
   }, [initialSearchQuery]);
 
+  useEffect(() => {
+    if (selectedVehicleId) {
+      setSelectedVehicleIdFilter(selectedVehicleId);
+    } else {
+      setSelectedVehicleIdFilter('');
+    }
+  }, [selectedVehicleId]);
+
   const getVehicleInfo = (vehicleId: string) => {
     const vehicle = vehicles.find(v => String(v.id) === String(vehicleId));
     return formatVehicleInfo(vehicle, t, vehicleId);
@@ -64,6 +72,7 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
 
       // Search Query
       if (searchQuery) {
+        const query = searchQuery.toLowerCase();
         const vehicleInfo = getVehicleInfo(log.vehicleId).toLowerCase();
         const vehicleNum = String(log.vehicleNumber || '').toLowerCase();
         const serialMatch = log.tyreDetails?.some(td => 
@@ -81,7 +90,12 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
   const handleDownloadExcel = () => {
     const data: any[] = [];
     filteredLogs.forEach(log => {
-      log.tyreDetails?.forEach(td => {
+      const logTyres = log.tyreDetails?.filter(td => {
+        if (!tyreTypeFilter) return true;
+        return String(td.condition || '').toLowerCase() === tyreTypeFilter.toLowerCase();
+      });
+
+      logTyres?.forEach(td => {
         data.push({
           [t('serialNumber')]: td.serialNumber,
           [t('brand')]: td.brand,
@@ -183,7 +197,10 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
                 <div>
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t('tyreDetails')}:</p>
                   <div className="space-y-2">
-                    {log.tyreDetails?.map((td, idx) => (
+                    {log.tyreDetails?.filter(td => {
+                      if (!tyreTypeFilter) return true;
+                      return String(td.condition || '').toLowerCase() === tyreTypeFilter.toLowerCase();
+                    }).map((td, idx) => (
                       <div 
                         key={td.id || idx} 
                         className="bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm cursor-pointer hover:border-green-300 hover:bg-green-50 transition-all group"

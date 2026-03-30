@@ -12,7 +12,7 @@ export const TransferHistory: React.FC<TransferHistoryProps> = ({ selectedVehicl
   const { transferRequests, vehicles } = useData();
 
   const completedTransfers = transferRequests.filter(req => {
-    const isCompleted = req.status.toLowerCase() === 'accepted' || req.status.toLowerCase() === 'rejected';
+    const isCompleted = String(req.status || '').toLowerCase() === 'accepted' || String(req.status || '').toLowerCase() === 'rejected';
     if (!isCompleted) return false;
     if (selectedVehicleId && req.vehicleId !== selectedVehicleId) return false;
     return true;
@@ -34,11 +34,11 @@ export const TransferHistory: React.FC<TransferHistoryProps> = ({ selectedVehicl
                   {vehicle ? `${t(vehicle.vehiclesType)} ${vehicle.vehicleCompanyNumber ? `${vehicle.vehicleCompanyNumber}-` : ''}${vehicle.vehicleNumber}` : req.vehicleId}
                 </div>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  req.status.toLowerCase() === 'accepted' 
+                  String(req.status || '').toLowerCase() === 'accepted' 
                     ? 'bg-green-100 text-green-800' 
                     : 'bg-red-100 text-red-800'
                 }`}>
-                  {t(req.status.toLowerCase())}
+                  {t(String(req.status || '').toLowerCase())}
                 </span>
               </div>
               <div className="flex items-center text-sm text-gray-900 mb-2">
@@ -104,11 +104,11 @@ export const TransferHistory: React.FC<TransferHistoryProps> = ({ selectedVehicl
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      req.status.toLowerCase() === 'accepted' 
+                      String(req.status || '').toLowerCase() === 'accepted' 
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {t(req.status.toLowerCase())}
+                      {t(String(req.status || '').toLowerCase())}
                     </span>
                   </td>
                 </tr>
