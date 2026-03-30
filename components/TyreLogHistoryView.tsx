@@ -59,7 +59,7 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
       // Tyre Type Filter
       if (tyreTypeFilter) {
         const filterValue = tyreTypeFilter.toLowerCase();
-        if (!log.tyreDetails?.some(td => td.condition?.toLowerCase() === filterValue)) return false;
+        if (!log.tyreDetails?.some(td => String(td.condition || '').toLowerCase() === filterValue)) return false;
       }
 
       // Search Query
@@ -67,8 +67,8 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
         const vehicleInfo = getVehicleInfo(log.vehicleId).toLowerCase();
         const vehicleNum = String(log.vehicleNumber || '').toLowerCase();
         const serialMatch = log.tyreDetails?.some(td => 
-          td.serialNumber?.toLowerCase().includes(query) || 
-          td.remarks?.toLowerCase().includes(query)
+          String(td.serialNumber || '').toLowerCase().includes(query) || 
+          String(td.remarks || '').toLowerCase().includes(query)
         );
         const vehicleMatch = vehicleInfo.includes(query) || vehicleNum.includes(query);
         if (!vehicleMatch && !serialMatch) return false;
