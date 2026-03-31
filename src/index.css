@@ -3,3 +3,27 @@
 body {
   font-family: 'Inter', sans-serif;
 }
+
+@media print {
+  @page {
+    size: 9.02in 6.38in landscape;
+    margin: 0;
+  }
+  body * {
+    visibility: hidden;
+  }
+  #tyre-print-section, #tyre-print-section * {
+    visibility: visible;
+  }
+  #tyre-print-section {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 9.02in;
+    height: 6.38in;
+    padding: 0.5in;
+    box-sizing: border-box;
+    background: white;
+    display: block !important;
+  }
+}
