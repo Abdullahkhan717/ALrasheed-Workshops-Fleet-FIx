@@ -7,7 +7,7 @@ import { JobCard } from './JobCard';
 import { DuplicateRequestModal } from './DuplicateRequestModal';
 import { SearchableVehicleSelect } from './SearchableVehicleSelect';
 import { FaultReceipt } from './FaultReceipt';
-import { PlusIcon, TrashIcon, XMarkIcon, CheckIcon } from './Icons';
+import { PlusIcon, TrashIcon, XMarkIcon, CheckIcon, PrinterIcon } from './Icons';
 import { useTranslation } from '../hooks/useTranslation';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
@@ -76,6 +76,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [jobCardRequest, setJobCardRequest] = useState<RepairRequest | null>(null);
   const [jobCardVehicle, setJobCardVehicle] = useState<Vehicle | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
   const [customDate, setCustomDate] = useState(new Date().toISOString().split('T')[0]);
@@ -83,7 +84,33 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
   const [pendingRequestForDupCheck, setPendingRequestForDupCheck] = useState<RepairRequest | null>(null);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [receiptsToPrint, setReceiptsToPrint] = useState<{ request: RepairRequest, fault: Fault, index: number }[]>([]);
+  const [submitAction, setSubmitAction] = useState<'save' | 'print'>('save');
   
+  // Auto-print when receipts are ready
+  React.useEffect(() => {
+    if (receiptsToPrint.length > 0) {
+      console.log("Receipts ready to print, length:", receiptsToPrint.length);
+      // Ensure window is focused to help with print dialog
+      window.focus();
+      
+      const printWhenReady = (attempts = 0) => {
+        const element = document.getElementById('receipts-print-section');
+        if (element) {
+          console.log("Print section found, calling window.print()");
+          window.print();
+        } else if (attempts < 10) {
+          console.log("Print section not found, retrying... attempt:", attempts + 1);
+          setTimeout(() => printWhenReady(attempts + 1), 200);
+        } else {
+          console.error("Print section never appeared after 10 attempts.");
+        }
+      };
+
+      const timer = setTimeout(printWhenReady, 1000); // Wait for modal animation and content
+      return () => clearTimeout(timer);
+    }
+  }, [receiptsToPrint]);
+
   const handleAddFault = () => {
     if (faults.length < 10) {
       setFaults([...faults, { id: generateId(), description: '', workshopId: '', mechanicName: '' }]);
@@ -182,8 +209,10 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
     setCustomTime(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent, actionOverride?: 'save' | 'print') => {
     e.preventDefault();
+    if (isSubmitting) return;
+    const currentAction = actionOverride || submitAction;
 
     if (!selectedVehicleId) {
       alert(t('alert_selectVehicle'));
@@ -193,6 +222,8 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
       alert(t('alert_enterDriverName'));
       return;
     }
+
+    setIsSubmitting(true);
 
     let finalFaults: Fault[] = [];
     let finalPurpose = purpose;
@@ -231,17 +262,20 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
         .catch(error => {
           console.error("Failed to save oil log:", error);
           alert(t('alert_oilLogSaveFailed'));
-        });
+        })
+        .finally(() => setIsSubmitting(false));
       return;
     }
 
     if (requestType === 'tyre') {
       if (!driverName.trim()) {
         alert(t('alert_enterDriverName'));
+        setIsSubmitting(false);
         return;
       }
       if (!toLocation) {
         alert(t('alert_selectLocation'));
+        setIsSubmitting(false);
         return;
       }
 
@@ -252,6 +286,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
 
       if (invalidTyre) {
         alert(t('fillAllFields'));
+        setIsSubmitting(false);
         return;
       }
 
@@ -287,18 +322,21 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
         .catch(error => {
           console.error("Failed to save tyre log:", error);
           alert(t('alert_tyreLogSaveFailed') || 'Failed to save tyre log');
-        });
+        })
+        .finally(() => setIsSubmitting(false));
       return;
     }
 
     const faultsWithDescription = faults.filter(f => f.description.trim());
     if (faultsWithDescription.length === 0) {
       alert(t('alert_addFault'));
+      setIsSubmitting(false);
       return;
     }
     const hasMissingWorkshop = faultsWithDescription.some(f => !f.workshopId);
     if (hasMissingWorkshop) {
       alert(t('alert_selectWorkshopForEachFault'));
+      setIsSubmitting(false);
       return;
     }
     finalFaults = faultsWithDescription;
@@ -332,23 +370,22 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
               dateOut: updatedRequest.dateOut || '',
               timeOut: updatedRequest.timeOut || '',
               workDone: updatedRequest.faults.map(f => f.workDone || '').filter(Boolean).join('; '),
-              partsUsed: updatedRequest.faults.flatMap(f => f.partsUsed || []).map(p => `${p.name} (${p.quantity})`).join(', ')
+              partsUsed: updatedRequest.faults.flatMap(f => f.partsUsed || []).map(p => `${p.name} (${p.quantity})`).join(', '),
+              fultin: updatedRequest.fultin || '',
+              bodyid: updatedRequest.bodyid || ''
             };
             updateData('RepairRequests', payload)
                 .then(() => {
-                    alert(t('alert_jobCardUpdated', { jobCardId: editingRequestId }));
-                    
-                    // Identify new faults
-                    const newFaults = finalFaults.filter(f => !originalRequest.faults.some(of => of.id === f.id));
-                    if (newFaults.length > 0) {
-                        const receipts = newFaults.map(f => ({
+                    if (currentAction === 'print') {
+                        const receipts = finalFaults.map((f, idx) => ({
                             request: updatedRequest,
                             fault: f,
-                            index: updatedRequest.faults.findIndex(uf => uf.id === f.id)
+                            index: idx
                         }));
-                        resetForm();
                         setReceiptsToPrint(receipts);
+                        // Don't resetForm yet, let the print modal handle it on close
                     } else {
+                        alert(t('alert_jobCardUpdated', { jobCardId: editingRequestId }));
                         setJobCardVehicle(vehicles.find(v => v.id === updatedRequest.vehicleId) || null);
                         setJobCardRequest(updatedRequest);
                         resetForm();
@@ -357,7 +394,8 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
                 .catch(error => {
                     console.error("Failed to update repair request:", error);
                     alert('Failed to save the updated request to Google Sheet.');
-                });
+                })
+                .finally(() => setIsSubmitting(false));
         }
     } else {
         const lastNumStr = lastJobCardNumber.replace(/\D/g, '');
@@ -419,22 +457,28 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
         };
         createData('RepairRequests', payload)
           .then(() => {
-            alert(t('alert_jobCardCreated', { jobCardId: newJobCardNumber }));
-            
-            const receipts = newRequest.faults.map((f, idx) => ({
-                request: newRequest,
-                fault: f,
-                index: idx
-            }));
-            resetForm();
-            setReceiptsToPrint(receipts);
+            if (currentAction === 'print') {
+                const receipts = newRequest.faults.map((f, idx) => ({
+                    request: newRequest,
+                    fault: f,
+                    index: idx
+                }));
+                setReceiptsToPrint(receipts);
+                // Don't resetForm yet, let the print modal handle it on close
+            } else {
+                alert(t('alert_jobCardCreated', { jobCardId: newJobCardNumber }));
+                setJobCardVehicle(vehicles.find(v => v.id === newRequest.vehicleId) || null);
+                setJobCardRequest(newRequest);
+                resetForm();
+            }
           })
           .catch(error => {
             console.error("Failed to create repair request:", error);
             alert('Failed to save the new request to Google Sheet.');
             // Rollback the job card number if the save fails
             setLastJobCardNumber(prev => (parseInt(prev) - 1).toString());
-          });
+          })
+          .finally(() => setIsSubmitting(false));
     }
   };
   
@@ -531,13 +575,23 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
         <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4 overflow-auto">
             <div className="bg-white rounded-lg w-full max-w-5xl p-6 relative">
                 <button 
-                    onClick={() => setReceiptsToPrint([])}
+                    onClick={() => {
+                        setReceiptsToPrint([]);
+                        resetForm();
+                    }}
                     className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10 print:hidden"
                 >
                     <XMarkIcon className="h-6 w-6" />
                 </button>
                 <div className="flex justify-between items-center mb-6 print:hidden">
-                    <h2 className="text-2xl font-bold">{t('printFaultReceipts')}</h2>
+                    <div>
+                        <h2 className="text-2xl font-bold">{t('printFaultReceipts')}</h2>
+                        <div className="flex items-center gap-2">
+                            <p className="text-green-600 font-medium text-sm">{t('jobCardSavedSuccessfully')}</p>
+                            <span className="text-blue-600 text-xs animate-pulse">({t('printing')}...)</span>
+                            <p className="text-gray-500 text-xs italic ml-4 hidden md:block">{t('printManualFallback')}</p>
+                        </div>
+                    </div>
                     <button 
                         onClick={() => window.print()}
                         className="flex items-center bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
@@ -546,10 +600,10 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
                         <span className="font-bold">{t('printAll')}</span>
                     </button>
                 </div>
-                <div className="space-y-8 print:space-y-0">
+                <div id="receipts-print-section" className="space-y-8 print:space-y-0">
                     {receiptsToPrint.map((item, idx) => (
-                        <div key={idx} className="border-b pb-8 last:border-0 relative">
-                            <div className="mb-4 flex justify-between items-center">
+                        <div key={idx} className="border-b pb-8 last:border-0 relative print:border-0 print:pb-0">
+                            <div className="mb-4 flex justify-between items-center print:hidden">
                                 <h3 className="text-lg font-semibold">{t('fault')} {idx + 1}</h3>
                             </div>
                             <FaultReceipt 
@@ -558,6 +612,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
                                 fault={item.fault}
                                 faultIndex={item.index}
                                 workshop={workshops.find(w => w.id === item.fault.workshopId)}
+                                vehicles={vehicles}
                             />
                         </div>
                     ))}
@@ -1223,11 +1278,37 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
         )}
 
         {selectedVehicle && (
-            <div className="pt-8 flex justify-end">
+            <div className="pt-8 flex flex-col sm:flex-row justify-end gap-4">
+                {requestType === 'repair' && (
+                    <button
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={(e) => {
+                            setSubmitAction('print');
+                            handleSubmit(e, 'print');
+                        }}
+                        className={`bg-blue-600 text-white px-8 py-3 rounded-lg font-bold shadow-lg hover:bg-blue-700 transition flex items-center justify-center ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {isSubmitting && submitAction === 'print' ? (
+                            <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full me-2"></span>
+                        ) : (
+                            <PrinterIcon className="h-5 w-5 me-2" />
+                        )}
+                        {editingRequestId ? t('printSlipAndUpdateJobCard') : t('printSlipAndCreateJobCard')}
+                    </button>
+                )}
                 <button
-                    type="submit"
-                    className="bg-green-600 text-white px-8 py-3 rounded-lg font-bold shadow-lg hover:bg-green-700 transition"
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={(e) => {
+                        setSubmitAction('save');
+                        handleSubmit(e, 'save');
+                    }}
+                    className={`bg-green-600 text-white px-8 py-3 rounded-lg font-bold shadow-lg hover:bg-green-700 transition flex items-center justify-center ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
+                    {isSubmitting && submitAction === 'save' ? (
+                        <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full me-2"></span>
+                    ) : null}
                     {requestType === 'tyre' ? t('addTyre') : (editingRequestId ? t('updateJobCard') : t('createJobCard'))}
                 </button>
             </div>

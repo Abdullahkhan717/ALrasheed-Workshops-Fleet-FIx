@@ -36,8 +36,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const fetchData = useCallback(async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     setError(null);
     try {
       const data = await getAllData();
@@ -270,7 +270,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Fetch error:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch data'));
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   }, []);
 
@@ -280,19 +280,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const createData = async (sheetName: string, payload: any) => {
     const result = await createRecord(payload, sheetName);
-    await fetchData();
+    await fetchData(true);
     return result;
   };
 
   const updateData = async (sheetName: string, payload: any) => {
     const result = await updateRecord(payload, sheetName);
-    await fetchData();
+    await fetchData(true);
     return result;
   };
 
   const deleteData = async (sheetName: string, id: string) => {
     const result = await deleteRecord(id, sheetName);
-    await fetchData();
+    await fetchData(true);
     return result;
   };
 

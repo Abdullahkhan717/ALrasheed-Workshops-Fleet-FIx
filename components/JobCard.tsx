@@ -42,20 +42,62 @@ export const JobCard: React.FC<JobCardProps> = ({ request, vehicle: propVehicle,
     if (!printRef.current) return null;
     try {
       const element = printRef.current;
-      const { jsPDF } = jspdf;
+      
+      // Get jsPDF from global window.jspdf or jspdf
+      const jsPDFLib = (window as any).jspdf?.jsPDF || (window as any).jsPDF || (typeof jspdf !== 'undefined' ? jspdf.jsPDF : null);
+      
+      if (!jsPDFLib) {
+        console.error("jsPDF library not found");
+        return null;
+      }
+
+      // Get html2canvas from global
+      const h2c = (window as any).html2canvas || (typeof html2canvas !== 'undefined' ? html2canvas : null);
+      
+      if (!h2c) {
+        console.error("html2canvas library not found");
+        return null;
+      }
       
       // Use html2canvas to capture the element
-      // We don't need to force width here if we set it in the style, 
-      // but let's ensure it's captured at a high resolution
-      const canvas = await html2canvas(element, { 
+      // We use onclone to ensure we don't have oklch colors which html2canvas can't parse
+      const canvas = await h2c(element, { 
         scale: 2,
         useCORS: true,
         logging: false,
-        windowWidth: 800 // Force the virtual window width for consistent layout
+        windowWidth: 800,
+        onclone: (clonedDoc: Document) => {
+          const el = clonedDoc.getElementById('print-section');
+          if (el) {
+            // Force hex colors for common tailwind classes to avoid oklch issues
+            const style = clonedDoc.createElement('style');
+            style.innerHTML = `
+              #print-section {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+              }
+              #print-section * {
+                border-color: #000000 !important;
+              }
+              .bg-gray-50 { background-color: #f9fafb !important; }
+              .bg-gray-100 { background-color: #f3f4f6 !important; }
+              .bg-gray-200 { background-color: #e5e7eb !important; }
+              .text-gray-300 { color: #d1d5db !important; }
+              .text-gray-400 { color: #9ca3af !important; }
+              .text-gray-500 { color: #6b7280 !important; }
+              .text-red-600 { color: #dc2626 !important; }
+              .text-green-600 { color: #16a34a !important; }
+              .text-orange-600 { color: #ea580c !important; }
+              .border-gray-200 { border-color: #e5e7eb !important; }
+              .border-gray-300 { border-color: #d1d5db !important; }
+            `;
+            clonedDoc.head.appendChild(style);
+          }
+        }
       });
       
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
+      const pdf = new jsPDFLib({
         orientation: 'p',
         unit: 'mm',
         format: 'a4',
@@ -131,7 +173,6 @@ export const JobCard: React.FC<JobCardProps> = ({ request, vehicle: propVehicle,
   }, [onShare]);
 
   const toLocationData = allLocations.find(l => l.name === request.toLocation);
-  const primaryForeman = toLocationData?.workshopManager || 'Waseem khan';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-0 md:p-4">
@@ -360,7 +401,6 @@ export const JobCard: React.FC<JobCardProps> = ({ request, vehicle: propVehicle,
                 </div>
               </div>
               <div className="text-center">
-                <p className="font-bold text-sm mb-1">{primaryForeman}</p>
                 <div className="border-t border-black pt-2">
                   <p className="text-[10px] font-bold uppercase">{t('foremanSignature')}</p>
                 </div>

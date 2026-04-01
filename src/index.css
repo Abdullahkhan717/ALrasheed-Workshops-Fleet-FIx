@@ -6,23 +6,22 @@ body {
 
 @media print {
   @page {
-    size: 9.02in 6.38in landscape;
-    margin: 0;
+    size: 210mm 148mm landscape;
+    margin: 5mm;
   }
   body * {
     visibility: hidden;
   }
-  #tyre-print-section, #tyre-print-section * {
+  #tyre-print-section, #tyre-print-section *,
+  #print-section, #print-section *,
+  #receipts-print-section, #receipts-print-section * {
     visibility: visible;
   }
-  #tyre-print-section {
+  #tyre-print-section, #print-section, #receipts-print-section {
     position: absolute;
-    left: 0;
     top: 0;
-    width: 9.02in;
-    height: 6.38in;
-    padding: 0.5in;
-    box-sizing: border-box;
+    left: 0;
+    width: 100%;
     background: white;
     display: block !important;
   }

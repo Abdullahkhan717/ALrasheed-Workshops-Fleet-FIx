@@ -777,7 +777,7 @@ const AppContent: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (loading && vehicles.length === 0) {
     return (
         <div className="flex items-center justify-center h-screen bg-gray-100">
             <div className="p-8 text-center">
