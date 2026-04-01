@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Vehicle, Workshop, RepairRequest } from '../types';
 import { JobCard } from './JobCard';
-import { PrinterIcon, WhatsappIcon, CheckBadgeIcon, EyeIcon, XMarkIcon, TrashIcon, XCircleIcon } from './Icons';
+import { PrinterIcon, WhatsappIcon, CheckBadgeIcon, EyeIcon, XMarkIcon, TrashIcon, XCircleIcon, ArrowRightCircleIcon } from './Icons';
 import { useTranslation } from '../hooks/useTranslation';
 import { CompletionFormModal } from './CompletionFormModal';
 import { useAuth } from '../context/AuthContext';
@@ -58,6 +58,7 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
       const payload = { 
         ...request, 
         applicationStatus: 'Rejected', 
+        status: 'Rejected',
         rejectionReason: reason, 
         acceptedBy: currentUser?.id || 'Unknown',
         approvalDate: new Date().toISOString(),
@@ -90,6 +91,22 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
       };
       await updateData('RepairRequests', payload);
       alert(t('alert_requestCancelled') || 'Request has been cancelled.');
+    }
+  };
+
+  const handleOutsource = async (request: RepairRequest) => {
+    const workshopName = window.prompt(t('enterOutsourcedWorkshopName') || 'Enter Outsourced Workshop Name:');
+    if (workshopName) {
+      const payload = { 
+        ...request, 
+        status: 'Outsourced',
+        outsourcedWorkshopName: workshopName,
+        acceptedBy: currentUser?.id || 'Unknown',
+        approvalDate: new Date().toISOString(),
+        faults: JSON.stringify(request.faults) 
+      };
+      await updateData('RepairRequests', payload);
+      alert(t('alert_requestOutsourced') || 'Request has been outsourced.');
     }
   };
 
@@ -175,6 +192,7 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         request.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
                         request.applicationStatus === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                        request.status === 'Outsourced' ? 'bg-purple-100 text-purple-800' :
                         'bg-green-100 text-green-800'
                     }`}>
                       {t(request.status.toLowerCase() as any)}
@@ -190,6 +208,9 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
                         <>
                             <button onClick={() => handleAccept(request)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-100 rounded-full" title={t('accept')}>
                                 <CheckBadgeIcon className="h-5 w-5"/>
+                            </button>
+                            <button onClick={() => handleOutsource(request)} className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-100 rounded-full" title={t('transferOutsource')}>
+                                <ArrowRightCircleIcon className="h-5 w-5"/>
                             </button>
                             <button onClick={() => handleReject(request)} className="p-2 text-orange-600 hover:text-orange-900 hover:bg-orange-100 rounded-full" title={t('reject')}>
                                 <XMarkIcon className="h-5 w-5"/>
@@ -210,9 +231,14 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
                     )}
 
                     {(currentUser?.location === request.toLocation || currentUser?.location === request.fromLocation || currentUser?.role === 'admin') && request.applicationStatus === 'Accepted' && request.status === 'Pending' && (
-                        <button onClick={() => setRequestToComplete(request)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-100 rounded-full" title={t('markAsCompleted')}>
-                            <CheckBadgeIcon className="h-5 w-5"/>
-                        </button>
+                        <>
+                            <button onClick={() => setRequestToComplete(request)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-100 rounded-full" title={t('markAsCompleted')}>
+                                <CheckBadgeIcon className="h-5 w-5"/>
+                            </button>
+                            <button onClick={() => handleOutsource(request)} className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-100 rounded-full" title={t('transferOutsource')}>
+                                <ArrowRightCircleIcon className="h-5 w-5"/>
+                            </button>
+                        </>
                     )}
                     
                     <button onClick={() => handleShare(request)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-100 rounded-full" title={t('shareViaWhatsApp')}>
@@ -256,6 +282,7 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
                   <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${
                       request.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
                       request.applicationStatus === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                      request.status === 'Outsourced' ? 'bg-purple-100 text-purple-800' :
                       'bg-green-100 text-green-800'
                   }`}>
                     {t(request.status.toLowerCase() as any)}
@@ -283,7 +310,7 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
                   <span className="text-xs font-medium">{t('view')}</span>
                 </button>
 
-                {(currentUser?.location === request.toLocation || currentUser?.role === 'admin') && request.applicationStatus === 'Pending' && (
+                 {(currentUser?.location === request.toLocation || currentUser?.role === 'admin') && request.applicationStatus === 'Pending' && (
                   <>
                     <button 
                       onClick={() => handleAccept(request)} 
@@ -291,6 +318,13 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
                     >
                       <CheckBadgeIcon className="h-4 w-4"/>
                       <span className="text-xs font-medium">{t('accept')}</span>
+                    </button>
+                    <button 
+                      onClick={() => handleOutsource(request)} 
+                      className="flex-1 flex items-center justify-center space-x-2 bg-purple-50 text-purple-700 py-2 rounded-lg hover:bg-purple-100 transition-colors"
+                    >
+                      <ArrowRightCircleIcon className="h-4 w-4"/>
+                      <span className="text-xs font-medium">{t('transferOutsource')}</span>
                     </button>
                     <button 
                       onClick={() => handleReject(request)} 
@@ -313,13 +347,22 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
                 )}
 
                 {(currentUser?.location === request.toLocation || currentUser?.location === request.fromLocation || currentUser?.role === 'admin') && request.applicationStatus === 'Accepted' && request.status === 'Pending' && (
-                  <button 
-                    onClick={() => setRequestToComplete(request)} 
-                    className="flex-1 flex items-center justify-center space-x-2 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    <CheckBadgeIcon className="h-4 w-4"/>
-                    <span className="text-xs font-medium">{t('complete')}</span>
-                  </button>
+                  <>
+                    <button 
+                      onClick={() => setRequestToComplete(request)} 
+                      className="flex-1 flex items-center justify-center space-x-2 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      <CheckBadgeIcon className="h-4 w-4"/>
+                      <span className="text-xs font-medium">{t('complete')}</span>
+                    </button>
+                    <button 
+                      onClick={() => handleOutsource(request)} 
+                      className="flex-1 flex items-center justify-center space-x-2 bg-purple-50 text-purple-700 py-2 rounded-lg hover:bg-purple-100 transition-colors"
+                    >
+                      <ArrowRightCircleIcon className="h-4 w-4"/>
+                      <span className="text-xs font-medium">{t('transferOutsource')}</span>
+                    </button>
+                  </>
                 )}
 
                 <div className="w-full flex gap-2">

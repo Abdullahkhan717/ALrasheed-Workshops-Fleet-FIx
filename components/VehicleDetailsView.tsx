@@ -123,8 +123,9 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                       request.status === 'Completed' ? 'bg-green-100 text-green-800' : 
                       request.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                      request.status === 'Accepted' ? 'bg-green-100 text-green-800' :
-                      'bg-red-100 text-red-800'
+                      request.status === 'Outsourced' ? 'bg-purple-100 text-purple-800' :
+                      request.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                      'bg-orange-100 text-orange-800'
                     }`}>
                       {t(request.status.toLowerCase() as any)}
                     </span>

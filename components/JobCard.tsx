@@ -254,10 +254,16 @@ export const JobCard: React.FC<JobCardProps> = ({ request, vehicle: propVehicle,
               <div className="space-y-2 text-start">
                 <div className="flex border-b border-gray-200 py-1">
                   <span className="w-32 font-bold text-xs uppercase text-gray-500">{t('jobStatus')}</span>
-                  <span className={`font-bold text-sm uppercase ${request.status === 'Completed' ? 'text-green-600' : 'text-orange-600'}`}>
+                  <span className={`font-bold text-sm uppercase ${request.status === 'Completed' ? 'text-green-600' : request.status === 'Outsourced' ? 'text-purple-600' : 'text-orange-600'}`}>
                     {t(request.status.toLowerCase() as any)}
                   </span>
                 </div>
+                {request.status === 'Outsourced' && request.outsourcedWorkshopName && (
+                  <div className="flex border-b border-gray-200 py-1">
+                    <span className="w-32 font-bold text-xs uppercase text-gray-500">{t('outsourced')}</span>
+                    <span className="font-semibold text-sm italic">{request.outsourcedWorkshopName}</span>
+                  </div>
+                )}
                 <div className="flex border-b border-gray-200 py-1">
                   <span className="w-32 font-bold text-xs uppercase text-gray-500">{t('purpose')}</span>
                   <span className="font-semibold text-sm">{t(`purpose_${request.purpose.toLowerCase().replace(/ /g, '_')}`)}</span>

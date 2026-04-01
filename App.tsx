@@ -422,7 +422,7 @@ const AppContent: React.FC = () => {
       case 'pending':
         return <PendingRequestsList repairRequests={repairRequests.filter(r => r.status === 'Pending')} onUpdateRequest={handleUpdateRequest} vehicles={vehicles} workshops={workshops} />;
       case 'completed':
-        return <CompletedRequestsList repairRequests={repairRequests.filter(r => r.status === 'Completed')} vehicles={vehicles} workshops={workshops} />;
+        return <CompletedRequestsList repairRequests={repairRequests.filter(r => r.status === 'Completed' || r.status === 'Cancelled' || r.status === 'Rejected' || r.status === 'Outsourced')} vehicles={vehicles} workshops={workshops} />;
       case 'workshops':
         return <WorkshopList workshops={workshops} locations={locations} onAddWorkshop={handleCreateWorkshop} repairRequests={repairRequests} vehicles={vehicles} onUpdateWorkshop={(workshop) => updateData('Workshops', workshop)} onDeleteWorkshop={(id) => deleteData('Workshops', id)} />;
       case 'admin':

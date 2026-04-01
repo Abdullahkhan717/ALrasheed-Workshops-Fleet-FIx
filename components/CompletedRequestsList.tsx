@@ -85,6 +85,7 @@ export const CompletedRequestsList: React.FC<CompletedRequestsListProps> = ({ re
             <tr>
               <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">{t('jobCardNo')}</th>
               <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">{t('vehicle')}</th>
+              <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">{t('status')}</th>
               <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">{t('resolvedFaults')}</th>
               <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">{t('actions')}</th>
             </tr>
@@ -95,6 +96,16 @@ export const CompletedRequestsList: React.FC<CompletedRequestsListProps> = ({ re
                 <tr key={request.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{request.id}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{getVehicleInfo(request.vehicleId)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        request.status === 'Completed' ? 'bg-green-100 text-green-800' : 
+                        request.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                        request.status === 'Outsourced' ? 'bg-purple-100 text-purple-800' :
+                        'bg-orange-100 text-orange-800'
+                    }`}>
+                      {t(request.status.toLowerCase() as any)}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <ul className="list-disc list-inside">
                       {request.faults.map((f, fIndex) => <li key={`${f.id}-${fIndex}`}>{f.description}</li>)}
@@ -129,9 +140,15 @@ export const CompletedRequestsList: React.FC<CompletedRequestsListProps> = ({ re
                   <span className="text-xs font-bold text-green-600 uppercase tracking-wider">{t('jobCardNo')} {request.id}</span>
                   <h3 className="text-lg font-bold text-gray-900 mt-1">{getVehicleInfo(request.vehicleId)}</h3>
                 </div>
-                <span className="bg-green-100 text-green-800 px-2 py-0.5 text-[10px] font-bold rounded-full uppercase">
-                  {t('completed')}
-                </span>
+                <div className="flex flex-col items-end space-y-1">
+                  <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${
+                      request.status === 'Completed' ? 'bg-green-100 text-green-800' : 
+                      request.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                      'bg-orange-100 text-orange-800'
+                  }`}>
+                    {t(request.status.toLowerCase() as any)}
+                  </span>
+                </div>
               </div>
               
               <div>

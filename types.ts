@@ -76,7 +76,7 @@ export interface RepairRequest {
   timeIn: string;
   dateOut?: string;
   timeOut?: string;
-  status: 'Pending' | 'Completed';
+  status: 'Pending' | 'Completed' | 'Cancelled' | 'Rejected' | 'Outsourced';
   applicationStatus: 'Pending' | 'Accepted' | 'Rejected' | 'Cancelled';
   workshopId?: string;
   createdBy?: string;
@@ -90,6 +90,7 @@ export interface RepairRequest {
   approvalDate?: string;
   fultin?: string;
   bodyid?: string;
+  outsourcedWorkshopName?: string;
 }
 
 export interface TransferRequest {

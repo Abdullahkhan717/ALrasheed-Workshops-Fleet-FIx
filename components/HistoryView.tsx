@@ -382,10 +382,20 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
                     <button onClick={() => setRequestToComplete(req)} className="w-full sm:w-auto bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 text-xs font-bold uppercase shadow-sm transition-colors">
                       {t('markAsCompleted')}
                     </button>
-                ) : (
+                ) : req.status === 'Completed' ? (
                     <div className="text-end">
                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t('completedOn')}</p>
                        <p className="text-xs font-medium text-gray-600">{formatDate(req.dateOut)} {formatTime(req.timeOut)}</p>
+                    </div>
+                ) : (
+                    <div className="text-end">
+                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t('status')}</p>
+                       <p className={`text-xs font-bold uppercase ${req.status === 'Cancelled' ? 'text-red-600' : req.status === 'Outsourced' ? 'text-purple-600' : 'text-orange-600'}`}>
+                         {t(req.status.toLowerCase() as any)}
+                       </p>
+                       {req.status === 'Outsourced' && req.outsourcedWorkshopName && (
+                         <p className="text-[10px] text-gray-500 mt-1 italic">{req.outsourcedWorkshopName}</p>
+                       )}
                     </div>
                 )}
               </div>
