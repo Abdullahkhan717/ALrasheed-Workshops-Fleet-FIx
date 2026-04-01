@@ -30,6 +30,12 @@ export const translations: { [lang: string]: { [key: string]: string } } = {
     role: 'Role',
     password: 'Password',
     
+    confirm: 'Confirm',
+    saving: 'Saving...',
+    cancelledOn: 'Cancelled On',
+    outsourcedOn: 'Outsourced On',
+    cancelRequest: 'Cancel Request',
+    
     // Sidebar
     repairSystem: 'Vehicle Fix',
     dashboard: 'Dashboard',
@@ -548,6 +554,12 @@ export const translations: { [lang: string]: { [key: string]: string } } = {
     user: 'مستخدم',
     role: 'الدور',
     password: 'كلمة المرور',
+
+    confirm: 'تأكيد',
+    saving: 'جاري الحفظ...',
+    cancelledOn: 'تم الإلغاء في',
+    outsourcedOn: 'تم التحويل للخارج في',
+    cancelRequest: 'إلغاء الطلب',
 
     // Sidebar
     repairSystem: 'إصلاح المركبات',

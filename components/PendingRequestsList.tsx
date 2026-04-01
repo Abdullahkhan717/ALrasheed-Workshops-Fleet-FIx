@@ -4,9 +4,10 @@ import { JobCard } from './JobCard';
 import { PrinterIcon, WhatsappIcon, CheckBadgeIcon, EyeIcon, XMarkIcon, TrashIcon, XCircleIcon, ArrowRightCircleIcon } from './Icons';
 import { useTranslation } from '../hooks/useTranslation';
 import { CompletionFormModal } from './CompletionFormModal';
+import { StatusChangeModal } from './StatusChangeModal';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { formatDate, formatVehicleInfo } from '../utils/formatters';
+import { formatDate, formatVehicleInfo } from '../utils/formatters?v=3';
 
 interface PendingRequestsListProps {
   repairRequests: RepairRequest[];
@@ -20,6 +21,7 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
   const [requestToPrint, setRequestToPrint] = useState<RepairRequest | null>(null);
   const [requestToShare, setRequestToShare] = useState<RepairRequest | null>(null);
   const [requestToComplete, setRequestToComplete] = useState<RepairRequest | null>(null);
+  const [requestToStatusChange, setRequestToStatusChange] = useState<{ request: RepairRequest, type: 'Cancelled' | 'Outsourced' } | null>(null);
   const { t, language } = useTranslation();
   const { currentUser } = useAuth();
   const { updateData, deleteData } = useData();
@@ -36,6 +38,15 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
   const handleSaveCompletion = async (completedRequest: RepairRequest) => {
     await onUpdateRequest(completedRequest);
     setRequestToComplete(null);
+  };
+
+  const handleSaveStatusChange = async (updatedRequest: RepairRequest) => {
+    const payload = {
+        ...updatedRequest,
+        faults: JSON.stringify(updatedRequest.faults)
+    };
+    await updateData('RepairRequests', payload);
+    setRequestToStatusChange(null);
   };
 
   const handleAccept = async (request: RepairRequest) => {
@@ -71,43 +82,12 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
     }
   };
 
-  const handleCancel = async (request: RepairRequest) => {
-    let reason = window.prompt(t('enterCancellationReason') || 'Please enter the reason for cancellation:');
-    
-    while (reason === '') {
-      alert(t('cancellationReasonRequired') || 'Cancellation reason is required.');
-      reason = window.prompt(t('enterCancellationReason') || 'Please enter the reason for cancellation:');
-    }
-
-    if (reason) {
-      const payload = { 
-        ...request, 
-        applicationStatus: 'Cancelled', 
-        status: 'Cancelled',
-        rejectionReason: reason, 
-        acceptedBy: currentUser?.id || 'Unknown',
-        approvalDate: new Date().toISOString(),
-        faults: JSON.stringify(request.faults) 
-      };
-      await updateData('RepairRequests', payload);
-      alert(t('alert_requestCancelled') || 'Request has been cancelled.');
-    }
+  const handleCancel = (request: RepairRequest) => {
+    setRequestToStatusChange({ request, type: 'Cancelled' });
   };
 
-  const handleOutsource = async (request: RepairRequest) => {
-    const workshopName = window.prompt(t('enterOutsourcedWorkshopName') || 'Enter Outsourced Workshop Name:');
-    if (workshopName) {
-      const payload = { 
-        ...request, 
-        status: 'Outsourced',
-        outsourcedWorkshopName: workshopName,
-        acceptedBy: currentUser?.id || 'Unknown',
-        approvalDate: new Date().toISOString(),
-        faults: JSON.stringify(request.faults) 
-      };
-      await updateData('RepairRequests', payload);
-      alert(t('alert_requestOutsourced') || 'Request has been outsourced.');
-    }
+  const handleOutsource = (request: RepairRequest) => {
+    setRequestToStatusChange({ request, type: 'Outsourced' });
   };
 
   const handleDelete = async (request: RepairRequest) => {
@@ -153,6 +133,15 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
             request={requestToComplete}
             onClose={() => setRequestToComplete(null)}
             onSave={handleSaveCompletion}
+        />
+      )}
+
+      {requestToStatusChange && (
+        <StatusChangeModal
+            request={requestToStatusChange.request}
+            type={requestToStatusChange.type}
+            onClose={() => setRequestToStatusChange(null)}
+            onSave={handleSaveStatusChange}
         />
       )}
 

@@ -5,10 +5,11 @@ import { PrinterIcon, WhatsappIcon, DownloadIcon, EyeIcon } from './Icons';
 import { downloadHistoryCSV } from '../utils/csvExport';
 import { useTranslation } from '../hooks/useTranslation';
 import { CompletionFormModal } from './CompletionFormModal';
+import { StatusChangeModal } from './StatusChangeModal';
 import { SearchableVehicleSelect } from './SearchableVehicleSelect';
 import * as XLSX from 'xlsx';
 import { translateText } from '../services/translationService';
-import { formatDate, formatTime, formatVehicleInfo, parseDate } from '../utils/formatters';
+import { formatDate, formatTime, formatVehicleInfo, parseDate } from '../utils/formatters?v=3';
 
 interface HistoryViewProps {
   vehicles: Vehicle[];
@@ -26,6 +27,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
   const [requestToPrint, setRequestToPrint] = useState<RepairRequest | null>(null);
   const [requestToShare, setRequestToShare] = useState<RepairRequest | null>(null);
   const [requestToComplete, setRequestToComplete] = useState<RepairRequest | null>(null);
+  const [requestToStatusChange, setRequestToStatusChange] = useState<{ request: RepairRequest, type: 'Cancelled' | 'Outsourced' } | null>(null);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [timeFilter, setTimeFilter] = useState<'all' | 'daily' | 'monthly'>('all');
@@ -38,6 +40,11 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
   const handleSaveCompletion = async (completedRequest: RepairRequest) => {
     await onUpdateRequest(completedRequest);
     setRequestToComplete(null);
+  };
+
+  const handleSaveStatusChange = async (updatedRequest: RepairRequest) => {
+    await onUpdateRequest(updatedRequest);
+    setRequestToStatusChange(null);
   };
 
   const handleShare = (request: RepairRequest) => {
@@ -175,6 +182,15 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
             request={requestToComplete}
             onClose={() => setRequestToComplete(null)}
             onSave={handleSaveCompletion}
+        />
+      )}
+
+      {requestToStatusChange && (
+        <StatusChangeModal
+          request={requestToStatusChange.request}
+          type={requestToStatusChange.type}
+          onClose={() => setRequestToStatusChange(null)}
+          onSave={handleSaveStatusChange}
         />
       )}
 
@@ -379,13 +395,26 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
                 </div>
                 
                 {req.status === 'Pending' ? (
-                    <button onClick={() => setRequestToComplete(req)} className="w-full sm:w-auto bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 text-xs font-bold uppercase shadow-sm transition-colors">
-                      {t('markAsCompleted')}
-                    </button>
-                ) : req.status === 'Completed' ? (
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                      <button onClick={() => setRequestToComplete(req)} className="flex-1 sm:flex-none bg-green-600 text-white px-4 py-2.5 rounded-lg hover:bg-green-700 text-xs font-bold uppercase shadow-sm transition-colors">
+                        {t('markAsCompleted')}
+                      </button>
+                      <button onClick={() => setRequestToStatusChange({ request: req, type: 'Outsourced' })} className="flex-1 sm:flex-none bg-purple-600 text-white px-4 py-2.5 rounded-lg hover:bg-purple-700 text-xs font-bold uppercase shadow-sm transition-colors">
+                        {t('outsource')}
+                      </button>
+                      <button onClick={() => setRequestToStatusChange({ request: req, type: 'Cancelled' })} className="flex-1 sm:flex-none bg-red-600 text-white px-4 py-2.5 rounded-lg hover:bg-red-700 text-xs font-bold uppercase shadow-sm transition-colors">
+                        {t('cancel')}
+                      </button>
+                    </div>
+                ) : (req.status === 'Completed' || req.status === 'Cancelled' || req.status === 'Outsourced') && req.dateOut ? (
                     <div className="text-end">
-                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t('completedOn')}</p>
+                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                         {req.status === 'Completed' ? t('completedOn') : req.status === 'Cancelled' ? t('cancelledOn') : t('outsourcedOn')}
+                       </p>
                        <p className="text-xs font-medium text-gray-600">{formatDate(req.dateOut)} {formatTime(req.timeOut)}</p>
+                       {req.status === 'Outsourced' && req.outsourcedWorkshopName && (
+                         <p className="text-[10px] text-gray-500 mt-1 italic">{req.outsourcedWorkshopName}</p>
+                       )}
                     </div>
                 ) : (
                     <div className="text-end">

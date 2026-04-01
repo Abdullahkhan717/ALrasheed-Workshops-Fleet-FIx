@@ -3,7 +3,7 @@ import type { Vehicle, RepairRequest, OilLog } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAuth } from '../context/AuthContext';
 import { WhatsappIcon } from './Icons';
-import { formatVehicleInfo, formatDate, formatTime, parseDate } from '../utils/formatters';
+import { formatVehicleInfo, formatDate, formatTime, parseDate } from '../utils/formatters?v=3';
 
 interface VehicleDetailsViewProps {
   vehicle: Vehicle;

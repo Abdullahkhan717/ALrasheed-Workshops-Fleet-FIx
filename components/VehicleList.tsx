@@ -6,7 +6,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { VehicleDetailsView } from './VehicleDetailsView';
-import { formatVehicleInfo } from '../utils/formatters';
+import { formatVehicleInfo } from '../utils/formatters?v=3';
 
 interface VehicleListProps {
   vehicles: Vehicle[];

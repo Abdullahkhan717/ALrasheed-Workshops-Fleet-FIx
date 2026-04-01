@@ -15,7 +15,7 @@ import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
 import { useLanguage } from './context/LanguageContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { useData } from './context/DataContext';
-import { formatVehicleInfo } from './utils/formatters';
+import { formatVehicleInfo } from './utils/formatters?v=3';
 import { useTranslation } from './hooks/useTranslation';
 import { LoginScreen } from './components/LoginScreen';
 import { AdminPanel } from './components/AdminPanel';
@@ -36,6 +36,7 @@ import { generateId } from './utils/idGenerator';
 type View = 'dashboard' | 'fleet' | 'request' | 'history' | 'pending' | 'workshops' | 'completed' | 'admin' | 'oilLog' | 'locations' | 'transfers' | 'outsourcedLog' | 'tyreLogs' | 'myVehicles' | 'oilChangeAlert';
 
 const AppContent: React.FC = () => {
+  console.log('AppContent v3 loaded');
   const [activeView, setActiveView] = useState<View>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 

@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import type { RepairRequest, Vehicle, Workshop, Fault } from '../types';
 import { XMarkIcon, PrinterIcon } from './Icons';
 import { useTranslation } from '../hooks/useTranslation';
-import { formatDate, formatTime } from '../utils/formatters';
+import { formatDate, formatTime } from '../utils/formatters?v=3';
 
 interface FaultReceiptProps {
   request: RepairRequest;
