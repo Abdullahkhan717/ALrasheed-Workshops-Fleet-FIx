@@ -3,7 +3,7 @@ import type { Vehicle, Workshop, RepairRequest } from '../types';
 import { JobCard } from './JobCard';
 import { PrinterIcon, WhatsappIcon } from './Icons';
 import { useTranslation } from '../hooks/useTranslation';
-import { formatVehicleInfo } from '../utils/formatters?v=3';
+import { formatVehicleInfo } from '../utils/formatters';
 
 interface CompletedRequestsListProps {
   repairRequests: RepairRequest[];

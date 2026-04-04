@@ -8,7 +8,7 @@ import { useData } from '../context/DataContext';
 declare const jspdf: any;
 declare const html2canvas: any;
 
-import { formatDate, formatTime } from '../utils/formatters?v=3';
+import { formatDate, formatTime } from '../utils/formatters';
 
 interface JobCardProps {
   request: RepairRequest;
@@ -261,7 +261,9 @@ export const JobCard: React.FC<JobCardProps> = ({ request, vehicle: propVehicle,
                 {request.status === 'Outsourced' && request.outsourcedWorkshopName && (
                   <div className="flex border-b border-gray-200 py-1">
                     <span className="w-32 font-bold text-xs uppercase text-gray-500">{t('outsourced')}</span>
-                    <span className="font-semibold text-sm italic">{request.outsourcedWorkshopName}</span>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-sm italic">{request.outsourcedWorkshopName}</span>
+                    </div>
                   </div>
                 )}
                 <div className="flex border-b border-gray-200 py-1">
@@ -400,6 +402,15 @@ export const JobCard: React.FC<JobCardProps> = ({ request, vehicle: propVehicle,
               </div>
             )}
 
+            {request.status === 'Outsourced' && request.rejectionReason && (
+              <div className="mb-8">
+                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3 border-b border-gray-300 pb-1">{t('workDone')}</h3>
+                <div className="bg-gray-50 p-4 rounded border border-gray-200">
+                  <p className="text-sm whitespace-pre-wrap font-semibold">{request.rejectionReason}</p>
+                </div>
+              </div>
+            )}
+
             <div className="mt-12 grid grid-cols-3 gap-12">
               <div className="text-center">
                 <div className="border-t border-black pt-2">
@@ -417,7 +428,7 @@ export const JobCard: React.FC<JobCardProps> = ({ request, vehicle: propVehicle,
                 </div>
               </div>
             </div>
-            
+
             <div className="mt-8 text-center text-[8px] text-gray-400 uppercase tracking-[0.2em]">
               Computer Generated Document - No Signature Required for Validation
             </div>

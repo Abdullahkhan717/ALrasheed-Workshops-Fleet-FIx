@@ -15,7 +15,7 @@ import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
 import { useLanguage } from './context/LanguageContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { useData } from './context/DataContext';
-import { formatVehicleInfo } from './utils/formatters?v=3';
+import { formatVehicleInfo } from './utils/formatters';
 import { useTranslation } from './hooks/useTranslation';
 import { LoginScreen } from './components/LoginScreen';
 import { AdminPanel } from './components/AdminPanel';
@@ -278,6 +278,7 @@ const AppContent: React.FC = () => {
       workshopId: updatedRequest.workshopId || '',
       dateOut: updatedRequest.dateOut || '',
       timeOut: updatedRequest.timeOut || '',
+      transferOutsourceRemark: updatedRequest.transferOutsourceRemark || '',
       workDone: updatedRequest.faults.map(f => f.workDone || '').filter(Boolean).join('; '),
       partsUsed: updatedRequest.faults.flatMap(f => f.partsUsed || []).map(p => `${p.name} (${p.quantity})`).join(', ')
     };

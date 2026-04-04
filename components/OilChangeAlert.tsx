@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { useData } from '../context/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
-import { formatVehicleInfo } from '../utils/formatters?v=3';
+import { formatVehicleInfo } from '../utils/formatters';
 import { TruckIcon, CalendarIcon, MapPinIcon, UserIcon, DownloadIcon, SearchIcon } from './Icons';
-import { formatDate, parseDate } from '../utils/formatters?v=3';
+import { formatDate, parseDate } from '../utils/formatters';
 
 interface OilChangeAlertProps {
   onVehicleClick?: (vehicleId: string) => void;

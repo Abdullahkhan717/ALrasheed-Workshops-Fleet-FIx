@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
 import { DownloadIcon, SearchIcon } from './Icons';
-import { formatDate, formatTime, parseDate, formatVehicleInfo } from '../utils/formatters?v=3';
+import { formatDate, formatTime, parseDate, formatVehicleInfo } from '../utils/formatters';
 import * as XLSX from 'xlsx';
 
 interface OilLogHistoryViewProps {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { TyreLog, Vehicle } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { SearchIcon, EyeIcon, PencilIcon, ArrowsRightLeftIcon, DownloadIcon } from './Icons';
-import { formatVehicleInfo, formatDate, formatTime, parseDate } from '../utils/formatters?v=3';
+import { formatVehicleInfo, formatDate, formatTime, parseDate } from '../utils/formatters';
 import * as XLSX from 'xlsx';
 import { SearchableVehicleSelect } from './SearchableVehicleSelect';
 import { TyreDetailModal } from './TyreDetailModal';

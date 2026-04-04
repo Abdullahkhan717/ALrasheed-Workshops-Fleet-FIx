@@ -10,7 +10,7 @@ import { PlusIcon, TrashIcon, XMarkIcon, CheckIcon } from './Icons';
 import { useTranslation } from '../hooks/useTranslation';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
-import { formatVehicleInfo } from '../utils/formatters?v=3';
+import { formatVehicleInfo } from '../utils/formatters';
 import { generateId } from '../utils/idGenerator';
 
 interface RepairRequestViewProps {

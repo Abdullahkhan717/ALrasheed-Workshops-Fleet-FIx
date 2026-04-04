@@ -9,7 +9,7 @@ import { StatusChangeModal } from './StatusChangeModal';
 import { SearchableVehicleSelect } from './SearchableVehicleSelect';
 import * as XLSX from 'xlsx';
 import { translateText } from '../services/translationService';
-import { formatDate, formatTime, formatVehicleInfo, parseDate } from '../utils/formatters?v=3';
+import { formatDate, formatTime, formatVehicleInfo, parseDate } from '../utils/formatters';
 
 interface HistoryViewProps {
   vehicles: Vehicle[];
@@ -413,7 +413,15 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
                        </p>
                        <p className="text-xs font-medium text-gray-600">{formatDate(req.dateOut)} {formatTime(req.timeOut)}</p>
                        {req.status === 'Outsourced' && req.outsourcedWorkshopName && (
-                         <p className="text-[10px] text-gray-500 mt-1 italic">{req.outsourcedWorkshopName}</p>
+                         <div className="mt-1">
+                           <p className="text-[10px] text-gray-500 italic">{req.outsourcedWorkshopName}</p>
+                           {req.transferOutsourceRemark && (
+                             <p className="text-[10px] text-gray-400 mt-0.5">
+                               <span className="font-bold uppercase tracking-wider me-1">{t('reason')}:</span>
+                               {req.transferOutsourceRemark}
+                             </p>
+                           )}
+                         </div>
                        )}
                     </div>
                 ) : (
@@ -423,7 +431,15 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
                          {t(req.status.toLowerCase() as any)}
                        </p>
                        {req.status === 'Outsourced' && req.outsourcedWorkshopName && (
-                         <p className="text-[10px] text-gray-500 mt-1 italic">{req.outsourcedWorkshopName}</p>
+                         <div className="mt-1">
+                           <p className="text-[10px] text-gray-500 italic">{req.outsourcedWorkshopName}</p>
+                           {req.transferOutsourceRemark && (
+                             <p className="text-[10px] text-gray-400 mt-0.5">
+                               <span className="font-bold uppercase tracking-wider me-1">{t('reason')}:</span>
+                               {req.transferOutsourceRemark}
+                             </p>
+                           )}
+                         </div>
                        )}
                     </div>
                 )}

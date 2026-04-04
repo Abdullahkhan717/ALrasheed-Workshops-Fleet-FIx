@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import type { Vehicle } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { SearchIcon, XMarkIcon } from './Icons';
-import { formatVehicleInfo } from '../utils/formatters?v=3';
+import { formatVehicleInfo } from '../utils/formatters';
 
 interface SearchableVehicleSelectProps {
   vehicles: Vehicle[];

@@ -2,7 +2,7 @@ import React from 'react';
 import { XMarkIcon, ShareIcon, PencilIcon, ArrowsRightLeftIcon, PrinterIcon } from './Icons';
 import { useTranslation } from '../hooks/useTranslation';
 import type { TyreLog, Vehicle } from '../types';
-import { formatVehicleInfo, formatDate, formatTime } from '../utils/formatters?v=3';
+import { formatVehicleInfo, formatDate, formatTime } from '../utils/formatters';
 
 interface TyreDetailModalProps {
   serialNumber: string;

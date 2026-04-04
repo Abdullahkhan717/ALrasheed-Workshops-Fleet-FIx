@@ -7,7 +7,7 @@ import { CompletionFormModal } from './CompletionFormModal';
 import { StatusChangeModal } from './StatusChangeModal';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { formatDate, formatVehicleInfo } from '../utils/formatters?v=3';
+import { formatDate, formatVehicleInfo } from '../utils/formatters';
 
 interface PendingRequestsListProps {
   repairRequests: RepairRequest[];

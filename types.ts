@@ -91,6 +91,7 @@ export interface RepairRequest {
   fultin?: string;
   bodyid?: string;
   outsourcedWorkshopName?: string;
+  transferOutsourceRemark?: string;
 }
 
 export interface TransferRequest {

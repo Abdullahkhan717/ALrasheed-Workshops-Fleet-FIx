@@ -16,6 +16,7 @@ export const StatusChangeModal: React.FC<StatusChangeModalProps> = ({ request, t
   const [timeOut, setTimeOut] = useState('');
   const [reason, setReason] = useState('');
   const [workshopName, setWorkshopName] = useState('');
+  const [remark, setRemark] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -24,6 +25,7 @@ export const StatusChangeModal: React.FC<StatusChangeModalProps> = ({ request, t
     setTimeOut(now.toTimeString().slice(0, 5));
     if (type === 'Outsourced') {
       setWorkshopName(request.outsourcedWorkshopName || '');
+      setRemark(request.transferOutsourceRemark || '');
     } else {
       setReason(request.rejectionReason || '');
     }
@@ -52,8 +54,10 @@ export const StatusChangeModal: React.FC<StatusChangeModalProps> = ({ request, t
         ...request,
         status: type,
         applicationStatus: type === 'Cancelled' ? 'Cancelled' : request.applicationStatus,
-        rejectionReason: type === 'Cancelled' ? reason : request.rejectionReason,
+        rejectionReason: type === 'Cancelled' ? reason : (type === 'Outsourced' ? remark : request.rejectionReason),
+        toLocation: type === 'Outsourced' ? workshopName : request.toLocation,
         outsourcedWorkshopName: type === 'Outsourced' ? workshopName : request.outsourcedWorkshopName,
+        transferOutsourceRemark: type === 'Outsourced' ? remark : request.transferOutsourceRemark,
         dateOut,
         timeOut,
         approvalDate: new Date().toISOString(),
@@ -104,6 +108,16 @@ export const StatusChangeModal: React.FC<StatusChangeModalProps> = ({ request, t
                 placeholder={t('enterOutsourcedWorkshopName')}
                 required
               />
+              <div className="mt-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('transferOutsourceRemark')}</label>
+                <textarea
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                  rows={2}
+                  placeholder={t('transferOutsourceRemark')}
+                />
+              </div>
             </div>
           )}
 
