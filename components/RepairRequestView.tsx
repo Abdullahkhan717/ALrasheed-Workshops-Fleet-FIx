@@ -866,6 +866,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
                             { id: 'engineOil', label: t('oilLog_engineOil') },
                             { id: 'gearOil', label: t('oilLog_gearOil') },
                             { id: 'deffranceOil', label: t('oilLog_deffranceOil') },
+                            { id: 'noOil', label: t('oilLog_noOil') },
                             { id: 'Other', label: t('oilLog_other') }
                         ].map(oil => (
                             <label key={oil.id} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">

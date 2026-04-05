@@ -402,11 +402,13 @@ export const JobCard: React.FC<JobCardProps> = ({ request, vehicle: propVehicle,
               </div>
             )}
 
-            {request.status === 'Outsourced' && request.rejectionReason && (
+            {(request.status === 'Outsourced' || request.status === 'Cancelled' || request.status === 'Rejected') && (request.rejectionReason || request.transferOutsourceRemark) && (
               <div className="mb-8">
-                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3 border-b border-gray-300 pb-1">{t('workDone')}</h3>
+                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3 border-b border-gray-300 pb-1">
+                  {request.status === 'Outsourced' ? t('workDone') : t('reason')}
+                </h3>
                 <div className="bg-gray-50 p-4 rounded border border-gray-200">
-                  <p className="text-sm whitespace-pre-wrap font-semibold">{request.rejectionReason}</p>
+                  <p className="text-sm whitespace-pre-wrap font-semibold">{request.rejectionReason || request.transferOutsourceRemark}</p>
                 </div>
               </div>
             )}

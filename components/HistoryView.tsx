@@ -350,9 +350,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
                     <span className="font-medium text-gray-800">{req.driverName}</span>
                   </div>
                   
-                  {req.rejectionReason && (
+                  {(req.rejectionReason || req.transferOutsourceRemark) && (
                     <div className="mt-2 p-3 bg-red-50 border border-red-100 rounded-lg text-red-700 text-xs">
-                      <span className="font-bold">{req.applicationStatus === 'Rejected' ? t('rejectionReason') : t('cancellationReason')}:</span> {req.rejectionReason}
+                      <span className="font-bold">
+                        {req.status === 'Outsourced' ? t('workDone') : 
+                         req.applicationStatus === 'Rejected' ? t('rejectionReason') : 
+                         t('cancellationReason')}:
+                      </span> {req.rejectionReason || req.transferOutsourceRemark}
                     </div>
                   )}
                 </div>
@@ -415,10 +419,10 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
                        {req.status === 'Outsourced' && req.outsourcedWorkshopName && (
                          <div className="mt-1">
                            <p className="text-[10px] text-gray-500 italic">{req.outsourcedWorkshopName}</p>
-                           {req.transferOutsourceRemark && (
+                           {(req.rejectionReason || req.transferOutsourceRemark) && (
                              <p className="text-[10px] text-gray-400 mt-0.5">
                                <span className="font-bold uppercase tracking-wider me-1">{t('reason')}:</span>
-                               {req.transferOutsourceRemark}
+                               {req.rejectionReason || req.transferOutsourceRemark}
                              </p>
                            )}
                          </div>
@@ -433,10 +437,10 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ vehicles, workshops, r
                        {req.status === 'Outsourced' && req.outsourcedWorkshopName && (
                          <div className="mt-1">
                            <p className="text-[10px] text-gray-500 italic">{req.outsourcedWorkshopName}</p>
-                           {req.transferOutsourceRemark && (
+                           {(req.rejectionReason || req.transferOutsourceRemark) && (
                              <p className="text-[10px] text-gray-400 mt-0.5">
                                <span className="font-bold uppercase tracking-wider me-1">{t('reason')}:</span>
-                               {req.transferOutsourceRemark}
+                               {req.rejectionReason || req.transferOutsourceRemark}
                              </p>
                            )}
                          </div>
