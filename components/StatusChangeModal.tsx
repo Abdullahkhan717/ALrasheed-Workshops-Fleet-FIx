@@ -3,6 +3,8 @@ import type { RepairRequest } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { XMarkIcon } from './Icons';
 
+import { formatDate, formatTime } from '../utils/formatters';
+
 interface StatusChangeModalProps {
   request: RepairRequest;
   type: 'Cancelled' | 'Outsourced';
@@ -58,9 +60,9 @@ export const StatusChangeModal: React.FC<StatusChangeModalProps> = ({ request, t
         toLocation: type === 'Outsourced' ? workshopName : request.toLocation,
         outsourcedWorkshopName: type === 'Outsourced' ? workshopName : request.outsourcedWorkshopName,
         transferOutsourceRemark: type === 'Outsourced' ? remark : request.transferOutsourceRemark,
-        dateOut,
-        timeOut,
-        approvalDate: new Date().toISOString(),
+        dateOut: formatDate(dateOut),
+        timeOut: formatTime(timeOut),
+        approvalDate: formatDate(new Date()),
       };
       await onSave(updatedRequest);
       onClose();

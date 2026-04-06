@@ -15,7 +15,7 @@ import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
 import { useLanguage } from './context/LanguageContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { useData } from './context/DataContext';
-import { formatVehicleInfo } from './utils/formatters';
+import { formatVehicleInfo, formatDate, parseDate } from './utils/formatters';
 import { useTranslation } from './hooks/useTranslation';
 import { LoginScreen } from './components/LoginScreen';
 import { AdminPanel } from './components/AdminPanel';
@@ -231,7 +231,7 @@ const AppContent: React.FC = () => {
       ...request,
       id: generateId(),
       status: 'Pending',
-      requestDate: new Date().toISOString()
+      requestDate: formatDate(new Date())
     });
   };
 
@@ -726,8 +726,8 @@ const AppContent: React.FC = () => {
                           {vehicles.filter(vehicle => {
                             const vehicleLogs = oilLogs.filter(log => log.vehicleId === vehicle.id);
                             if (vehicleLogs.length === 0) return true;
-                            const latestLog = [...vehicleLogs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-                            const logDate = new Date(latestLog.date);
+                            const latestLog = [...vehicleLogs].sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime())[0];
+                            const logDate = parseDate(latestLog.date);
                             const tenDaysAgo = new Date();
                             tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
                             return logDate < tenDaysAgo;

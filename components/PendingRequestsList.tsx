@@ -55,7 +55,7 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
         ...request, 
         applicationStatus: 'Accepted', 
         acceptedBy: currentUser?.id || 'Unknown',
-        approvalDate: new Date().toISOString(),
+        approvalDate: formatDate(new Date()),
         faults: JSON.stringify(request.faults) 
       };
       await updateData('RepairRequests', payload);
@@ -72,7 +72,7 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
         status: 'Rejected',
         rejectionReason: reason, 
         acceptedBy: currentUser?.id || 'Unknown',
-        approvalDate: new Date().toISOString(),
+        approvalDate: formatDate(new Date()),
         faults: JSON.stringify(request.faults) 
       };
       await updateData('RepairRequests', payload);

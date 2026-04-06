@@ -221,7 +221,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
         location: fromLocation || currentUser?.location || '',
         oilTypes: JSON.stringify(oilList),
         filters: JSON.stringify(filterList),
-        date: `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`,
+        date: `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`,
         time: now.toLocaleTimeString()
       };
 
@@ -269,7 +269,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
         const tyreLogPayload = {
           id: generateId(),
           'Vehicle ID': selectedVehicleId,
-          'Date': `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`,
+          'Date': `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`,
           'Time': now.toLocaleTimeString(),
           'Mileage': mileage,
           'Driver Name': driverName,

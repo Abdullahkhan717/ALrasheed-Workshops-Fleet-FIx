@@ -6,6 +6,8 @@ import { generateId } from '../utils/idGenerator';
 import type { TyreLog, Vehicle } from '../types';
 import { XMarkIcon, SearchIcon } from './Icons';
 
+import { formatDate, formatTime } from '../utils/formatters';
+
 interface TyreLogFormModalProps {
   onClose: () => void;
   onSave: (tyreLog: Omit<TyreLog, 'id'>) => Promise<void>;
@@ -117,8 +119,8 @@ export const TyreLogFormModal: React.FC<TyreLogFormModalProps> = ({ onClose, onS
         const tyreLog: Omit<TyreLog, 'id'> = {
             vehicleId,
             vehicleNumber: vehicle?.vehicleNumber || '',
-            date,
-            time,
+            date: formatDate(date),
+            time: formatTime(time),
             mileage,
             driverName: requesterName,
             workshopLocation,

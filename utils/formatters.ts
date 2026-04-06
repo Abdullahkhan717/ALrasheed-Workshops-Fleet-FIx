@@ -33,8 +33,8 @@ export const parseDate = (dateStr: any) => {
       if (p2 > 12) {
         return new Date(year, p1 - 1, p2, 0, 0, 0, 0);
       }
-      // Ambiguous, default to DD-MM-YYYY
-      return new Date(year, p2 - 1, p1, 0, 0, 0, 0);
+      // Ambiguous, default to MM-DD-YYYY (as requested for sheet format)
+      return new Date(year, p1 - 1, p2, 0, 0, 0, 0);
     }
     
     // Try parsing as full ISO

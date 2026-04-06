@@ -6,6 +6,8 @@ import type { Vehicle, AppLocation } from '../types';
 import { XMarkIcon } from './Icons';
 import { generateId } from '../utils/idGenerator';
 
+import { formatDate, formatTime } from '../utils/formatters';
+
 interface TransferFormModalProps {
   vehicle: Vehicle;
   onClose: () => void;
@@ -39,7 +41,7 @@ export const TransferFormModal: React.FC<TransferFormModalProps> = ({ vehicle, o
             reason,
             remarks,
             status: 'Pending',
-            dateRequested: new Date().toLocaleDateString(),
+            dateRequested: formatDate(new Date()),
         };
         await onSave(transferData);
         onClose();

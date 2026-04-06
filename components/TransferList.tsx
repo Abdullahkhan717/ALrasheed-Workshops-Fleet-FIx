@@ -11,6 +11,8 @@ import {
   DocumentTextIcon
 } from './Icons';
 
+import { formatDate, formatTime } from '../utils/formatters';
+
 export const TransferList: React.FC = () => {
   const { t } = useTranslation();
   const { transferRequests, vehicles, updateData } = useData();
@@ -40,7 +42,7 @@ export const TransferList: React.FC = () => {
       await updateData('TransferRequests', {
         ...request,
         status,
-        dateAccepted: new Date().toISOString(),
+        dateAccepted: formatDate(new Date()),
         acceptedBy: currentUser?.id || 'Unknown',
         rejectionReason: reason
       });

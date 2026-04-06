@@ -4,6 +4,8 @@ import { useTranslation } from '../hooks/useTranslation';
 import { XMarkIcon, PlusIcon, TrashIcon } from './Icons';
 import { generateId } from '../utils/idGenerator';
 
+import { formatDate, formatTime } from '../utils/formatters';
+
 interface CompletionFormModalProps {
   request: RepairRequest;
   onClose: () => void;
@@ -92,8 +94,8 @@ export const CompletionFormModal: React.FC<CompletionFormModalProps> = ({ reques
     const completedRequest: RepairRequest = {
         ...request,
         faults: cleanedFaults,
-        dateOut,
-        timeOut,
+        dateOut: formatDate(dateOut),
+        timeOut: formatTime(timeOut),
         status: 'Completed',
     };
     onSave(completedRequest);
