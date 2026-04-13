@@ -375,8 +375,8 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
           mileage,
           purpose: finalPurpose,
           faults: finalFaults,
-          dateIn: now.toISOString(), // Use ISO for consistent parsing
-          timeIn: now.toISOString(),
+          dateIn: `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`,
+          timeIn: now.toLocaleTimeString(),
           status: 'Pending',
           applicationStatus: isIRO ? 'Accepted' : 'Pending',
           workshopId: finalFaults[0]?.workshopId || '',
@@ -385,7 +385,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
           toLocation: toLocation || '',
           applicationType: appType,
           acceptedBy: isIRO ? 'System' : '',
-          approvalDate: isIRO ? now.toISOString() : '',
+          approvalDate: isIRO ? `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}` : '',
           fultin,
           bodyid: fultin === 'Body' ? bodyid : '',
         };
@@ -397,8 +397,8 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
           mileage: mileage || '',
           purpose: finalPurpose,
           faults: JSON.stringify(finalFaults),
-          dateIn: now.toISOString(),
-          timeIn: now.toISOString(),
+          dateIn: `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`,
+          timeIn: now.toLocaleTimeString(),
           status: 'Pending',
           applicationStatus: isIRO ? 'Accepted' : 'Pending',
           workshopId: finalFaults[0]?.workshopId || '',
@@ -412,8 +412,8 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
           workDone: '',
           partsUsed: '',
           acceptedBy: isIRO ? 'System' : '',
-          approvalDate: isIRO ? now.toISOString() : '',
-          fultin,
+          approvalDate: isIRO ? `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}` : '',
+          fultin: fultin || '',
           bodyid: fultin === 'Body' ? bodyid : '',
         };
         createData('RepairRequests', payload)

@@ -51,11 +51,13 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
 
   const handleAccept = async (request: RepairRequest) => {
     if (window.confirm(language === 'ar' ? 'هل أنت متأكد من قبول هذا الطلب؟' : 'Are you sure you want to accept this request?')) {
+      const now = new Date();
+      const saveDate = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
       const payload = { 
         ...request, 
         applicationStatus: 'Accepted', 
         acceptedBy: currentUser?.id || 'Unknown',
-        approvalDate: formatDate(new Date()),
+        approvalDate: saveDate,
         faults: JSON.stringify(request.faults) 
       };
       await updateData('RepairRequests', payload);
@@ -66,13 +68,15 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({ repair
   const handleReject = async (request: RepairRequest) => {
     const reason = window.prompt(t('enterRejectionReason') || 'Enter rejection reason:');
     if (reason) {
+      const now = new Date();
+      const saveDate = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
       const payload = { 
         ...request, 
         applicationStatus: 'Rejected', 
         status: 'Rejected',
         rejectionReason: reason, 
         acceptedBy: currentUser?.id || 'Unknown',
-        approvalDate: formatDate(new Date()),
+        approvalDate: saveDate,
         faults: JSON.stringify(request.faults) 
       };
       await updateData('RepairRequests', payload);

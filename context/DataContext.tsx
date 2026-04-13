@@ -69,26 +69,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const rawVehicles = data[vKey] || [];
       const parsedVehicles = rawVehicles.map((v: any) => ({
         id: String(v.id || ''),
-        vehiclesType: v.VehiclesType || v.vehiclesType || '',
-        vehicleCompanyNumber: v.VehicleCompanyNumber || v.vehicleCompanyNumber || '',
-        vehicleNumber: v.VehicleNumber || v.vehicleNumber || '',
-        make: v.make || '',
-        modelNumber: v.modelNumber || '',
-        serialNumber: v.serialNumber || '',
-        branchLocation: v.branchLocation || '',
-        arabicName: v.arabicName || '',
-        condition: v.condition || ''
+        vehiclesType: String(v.VehiclesType || v.vehiclesType || ''),
+        vehicleCompanyNumber: String(v.VehicleCompanyNumber || v.vehicleCompanyNumber || ''),
+        vehicleNumber: String(v.VehicleNumber || v.vehicleNumber || ''),
+        make: String(v.make || ''),
+        modelNumber: String(v.modelNumber || ''),
+        serialNumber: String(v.serialNumber || ''),
+        branchLocation: String(v.branchLocation || ''),
+        arabicName: String(v.arabicName || ''),
+        condition: String(v.condition || '')
       }));
       setVehicles(parsedVehicles);
 
       const rawWorkshops = data[wsKey] || [];
       const parsedWorkshops = rawWorkshops.map((w: any) => ({
         id: String(w.id || w.WorkshopID || w.workshopId || ''),
-        subName: w.subName || w.SubName || '',
-        foreman: w.foreman || w.Foreman || '',
-        location: w.location || w.Location || '',
-        mechanic: w.mechanic || w.Mechanic || '',
-        arabicName: w.arabicName || w.ArabicName || ''
+        subName: String(w.subName || w.SubName || ''),
+        foreman: String(w.foreman || w.Foreman || ''),
+        location: String(w.location || w.Location || ''),
+        mechanic: String(w.mechanic || w.Mechanic || ''),
+        arabicName: String(w.arabicName || w.ArabicName || '')
       }));
       setWorkshops(parsedWorkshops);
       
@@ -137,9 +137,31 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
             const finalFaults = Array.isArray(faults) ? faults : [faults];
             return { 
-              ...req, 
               id: String(req.id || ''),
               vehicleId: String(req.vehicleId || req['Vehicle ID'] || ''),
+              driverName: String(req.driverName || req['Driver Name'] || ''),
+              mileage: String(req.mileage || req.Mileage || ''),
+              purpose: String(req.purpose || req.Purpose || ''),
+              dateIn: String(req.dateIn || req['Date In'] || ''),
+              timeIn: String(req.timeIn || req['Time In'] || ''),
+              dateOut: String(req.dateOut || req['Date Out'] || ''),
+              timeOut: String(req.timeOut || req['Time Out'] || ''),
+              status: (req.status || req.Status || 'Pending') as any,
+              applicationStatus: (req.applicationStatus || req['Application Status'] || 'Pending') as any,
+              workshopId: String(req.workshopId || req['Workshop ID'] || ''),
+              createdBy: String(req.createdBy || req['Created By'] || ''),
+              workDone: String(req.workDone || req['Work Done'] || ''),
+              partsUsed: String(req.partsUsed || req['Parts Used'] || ''),
+              fromLocation: String(req.fromLocation || req['From Location'] || ''),
+              toLocation: String(req.toLocation || req['To Location'] || ''),
+              applicationType: String(req.applicationType || req['Application Type'] || ''),
+              rejectionReason: String(req.rejectionReason || req['Rejection Reason'] || ''),
+              acceptedBy: String(req.acceptedBy || req['Accepted By'] || ''),
+              approvalDate: String(req.approvalDate || req['Approval Date'] || ''),
+              fultin: String(req.fultin || ''),
+              bodyid: String(req.bodyid || ''),
+              outsourcedWorkshopName: String(req.outsourcedWorkshopName || ''),
+              transferOutsourceRemark: String(req.transferOutsourceRemark || ''),
               faults: finalFaults 
             } as RepairRequest;
           } catch (e) {
@@ -148,7 +170,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         });
       setRepairRequests(parsedRequests);
-      setTransferRequests(data[trKey] || []);
+      const rawTransfers = data[trKey] || [];
+      const parsedTransfers = rawTransfers.map((tr: any) => ({
+        id: String(tr.id || ''),
+        vehicleId: String(tr.vehicleId || ''),
+        fromLocation: String(tr.fromLocation || ''),
+        toLocation: String(tr.toLocation || ''),
+        requesterName: String(tr.requesterName || ''),
+        reason: String(tr.reason || ''),
+        remarks: String(tr.remarks || ''),
+        status: (tr.status || 'Pending') as any,
+        dateRequested: String(tr.dateRequested || ''),
+        dateAccepted: String(tr.dateAccepted || ''),
+        acceptedBy: String(tr.acceptedBy || ''),
+        rejectionReason: String(tr.rejectionReason || ''),
+        requesterId: String(tr.requesterId || '')
+      }));
+      setTransferRequests(parsedTransfers);
       
       const rawOilLogs = data[olKey] || [];
       const parsedOilLogs = rawOilLogs.map((log: any) => {
@@ -178,9 +216,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
 
               return {
-                  ...log,
                   id: String(log.id || ''),
                   vehicleId: String(log.vehicleId || log.VehicleId || log['Vehicle ID'] || log.TruckID || log['Truck ID'] || ''),
+                  driverName: String(log.driverName || log['Driver Name'] || ''),
+                  mileage: String(log.mileage || log.Mileage || ''),
+                  location: String(log.location || log.Location || ''),
+                  date: String(log.date || log.Date || ''),
+                  time: String(log.time || log.Time || ''),
                   oilTypes: Array.isArray(oilTypes) ? oilTypes : [oilTypes],
                   filters: Array.isArray(filters) ? filters : [filters]
               } as OilLog;
@@ -224,14 +266,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return {
           id: String(log.id || ''),
           vehicleId: String(log['Vehicle ID'] || log.vehicleId || ''),
-          vehicleNumber: log['Vehicle Number'] || log.vehicleNumber,
-          date: log.Date || log.date,
-          time: log.Time || log.time,
-          mileage: log.Mileage || log.mileage,
-          driverName: log['Driver Name'] || log.driverName,
-          workshopLocation: log['Workshop Location'] || log.workshopLocation,
+          vehicleNumber: String(log['Vehicle Number'] || log.vehicleNumber || ''),
+          date: String(log.Date || log.date || ''),
+          time: String(log.Time || log.time || ''),
+          mileage: String(log.Mileage || log.mileage || ''),
+          driverName: String(log['Driver Name'] || log.driverName || ''),
+          workshopLocation: String(log['Workshop Location'] || log.workshopLocation || ''),
           tyreDetails,
-          mechanicName: log.mechanicName || log['Mechanic Name'] || ''
+          mechanicName: String(log.mechanicName || log['Mechanic Name'] || '')
         } as TyreLog;
       });
       setTyreLogs(parsedTyreLogs);
@@ -250,7 +292,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const rawLocations = data[locKey] || [];
       const parsedLocations = rawLocations.map((loc: any): AppLocation => ({
-          ...loc,
+          id: String(loc.id || ''),
+          name: String(loc.name || ''),
+          type: String(loc.type || ''),
+          siteManager: String(loc.siteManager || ''),
+          workshopManager: String(loc.workshopManager || ''),
           hasWorkshop: String(loc.hasWorkshop).toUpperCase() === 'TRUE' || loc.hasWorkshop === true || loc.hasWorkshop === 1 || loc.hasWorkshop === '1'
       }));
       setLocations(parsedLocations);

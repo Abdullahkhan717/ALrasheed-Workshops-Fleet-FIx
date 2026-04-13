@@ -81,6 +81,12 @@ export const formatDate = (dateStr: any) => {
   return `${day}/${month}/${year}`;
 };
 
+export const formatDateForSheet = (dateStr: any) => {
+  const date = parseDate(dateStr);
+  if (isNaN(date.getTime())) return String(dateStr || '');
+  return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+};
+
 export const formatTime = (timeStr: any) => {
   if (!timeStr) return '-';
   
