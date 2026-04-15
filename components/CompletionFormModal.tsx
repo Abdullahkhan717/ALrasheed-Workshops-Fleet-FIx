@@ -88,7 +88,7 @@ export const CompletionFormModal: React.FC<CompletionFormModalProps> = ({ reques
     
     const cleanedFaults = faults.map(f => ({
         ...f,
-        partsUsed: f.partsUsed.filter(p => p.name.trim() && p.quantity.trim())
+        partsUsed: f.partsUsed.filter(p => String(p.name || '').trim() && String(p.quantity || '').trim())
     }));
 
     const completedRequest: RepairRequest = {

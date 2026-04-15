@@ -298,7 +298,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
       return;
     }
 
-    const faultsWithDescription = faults.filter(f => f.description.trim());
+    const faultsWithDescription = faults.filter(f => String(f.description || '').trim());
     if (faultsWithDescription.length === 0) {
       alert(t('alert_addFault'));
       setIsSubmitting(false);

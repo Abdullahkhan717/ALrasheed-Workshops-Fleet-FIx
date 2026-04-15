@@ -162,7 +162,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
               bodyid: String(req.bodyid || ''),
               outsourcedWorkshopName: String(req.outsourcedWorkshopName || ''),
               transferOutsourceRemark: String(req.transferOutsourceRemark || ''),
-              faults: finalFaults 
+              faults: finalFaults.map((f: any) => ({
+                ...f,
+                id: String(f.id || ''),
+                description: String(f.description || ''),
+                workshopId: String(f.workshopId || ''),
+                workDone: String(f.workDone || ''),
+                mechanicName: String(f.mechanicName || ''),
+                partsUsed: (f.partsUsed || []).map((p: any) => ({
+                  id: String(p.id || ''),
+                  name: String(p.name || ''),
+                  quantity: String(p.quantity || '')
+                }))
+              }))
             } as RepairRequest;
           } catch (e) {
             console.error(`Failed to parse faults for request ${req.id}:`, req.faults);
@@ -272,7 +284,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           mileage: String(log.Mileage || log.mileage || ''),
           driverName: String(log['Driver Name'] || log.driverName || ''),
           workshopLocation: String(log['Workshop Location'] || log.workshopLocation || ''),
-          tyreDetails,
+          tyreDetails: tyreDetails.map((td: any) => ({
+            ...td,
+            id: String(td.id || ''),
+            condition: String(td.condition || ''),
+            size: String(td.size || ''),
+            serialNumber: String(td.serialNumber || ''),
+            brand: String(td.brand || ''),
+            fromVehicle: String(td.fromVehicle || ''),
+            remarks: String(td.remarks || '')
+          })),
           mechanicName: String(log.mechanicName || log['Mechanic Name'] || '')
         } as TyreLog;
       });

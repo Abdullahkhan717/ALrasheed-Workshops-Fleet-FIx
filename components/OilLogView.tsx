@@ -4,6 +4,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useData } from '../context/DataContext';
 import { TruckIcon } from './Icons';
 import { generateId } from '../utils/idGenerator';
+import { formatDateForSheet } from '../utils/formatters';
 
 export const OilLogView: React.FC = () => {
   const { t } = useTranslation();
@@ -104,7 +105,7 @@ export const OilLogView: React.FC = () => {
         location: newLog.location,
         oilTypes: JSON.stringify(newLog.oilTypes),
         filters: JSON.stringify(newLog.filters),
-        date: `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`,
+        date: formatDateForSheet(now),
         time: now.toLocaleTimeString()
       };
 
