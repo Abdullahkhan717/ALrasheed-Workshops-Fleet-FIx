@@ -168,10 +168,10 @@ export const TransferList: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredRequests.map((req) => {
+                filteredRequests.map((req, index) => {
                   const vehicle = vehicles.find(v => v.id === req.vehicleId);
                   return (
-                    <tr key={req.id} className="hover:bg-gray-50 transition">
+                    <tr key={`${req.id}-${index}`} className="hover:bg-gray-50 transition">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">

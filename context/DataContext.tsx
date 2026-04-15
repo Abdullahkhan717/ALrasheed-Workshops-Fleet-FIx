@@ -23,6 +23,15 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+const uniqueById = <T extends { id: string }>(arr: T[]): T[] => {
+  const seen = new Set();
+  return arr.filter(item => {
+    if (!item.id || seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+};
+
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
@@ -79,7 +88,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         arabicName: String(v.arabicName || ''),
         condition: String(v.condition || '')
       }));
-      setVehicles(parsedVehicles);
+      setVehicles(uniqueById(parsedVehicles));
 
       const rawWorkshops = data[wsKey] || [];
       const parsedWorkshops = rawWorkshops.map((w: any) => ({
@@ -90,7 +99,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         mechanic: String(w.mechanic || w.Mechanic || ''),
         arabicName: String(w.arabicName || w.ArabicName || '')
       }));
-      setWorkshops(parsedWorkshops);
+      setWorkshops(uniqueById(parsedWorkshops));
       
       const safeJsonParse = (str: string) => {
           if (!str) return [];
@@ -181,7 +190,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return { ...req, faults: [] } as RepairRequest; 
           }
         });
-      setRepairRequests(parsedRequests);
+      setRepairRequests(uniqueById(parsedRequests));
       const rawTransfers = data[trKey] || [];
       const parsedTransfers = rawTransfers.map((tr: any) => ({
         id: String(tr.id || ''),
@@ -198,7 +207,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         rejectionReason: String(tr.rejectionReason || ''),
         requesterId: String(tr.requesterId || '')
       }));
-      setTransferRequests(parsedTransfers);
+      setTransferRequests(uniqueById(parsedTransfers));
       
       const rawOilLogs = data[olKey] || [];
       const parsedOilLogs = rawOilLogs.map((log: any) => {
@@ -297,7 +306,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           mechanicName: String(log.mechanicName || log['Mechanic Name'] || '')
         } as TyreLog;
       });
-      setTyreLogs(parsedTyreLogs);
+      setTyreLogs(uniqueById(parsedTyreLogs));
       
       const rawUsers = data[usKey] || [];
       const parsedUsers = rawUsers.map((u: any) => {
@@ -309,7 +318,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const fullName = u.fullName || u.FullName || '';
         return { id, password, role, status: status.toLowerCase(), location, fullName };
       });
-      setUsers(parsedUsers);
+      setUsers(uniqueById(parsedUsers));
       
       const rawLocations = data[locKey] || [];
       const parsedLocations = rawLocations.map((loc: any): AppLocation => ({
@@ -320,7 +329,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           workshopManager: String(loc.workshopManager || ''),
           hasWorkshop: String(loc.hasWorkshop).toUpperCase() === 'TRUE' || loc.hasWorkshop === true || loc.hasWorkshop === 1 || loc.hasWorkshop === '1'
       }));
-      setLocations(parsedLocations);
+      setLocations(uniqueById(parsedLocations));
       
       // Handle setting tab (singular)
       const settingsData = data[stKey];

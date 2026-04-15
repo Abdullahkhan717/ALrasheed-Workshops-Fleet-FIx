@@ -1038,7 +1038,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
 
                     <div className="space-y-4">
                         {tyres.map((tyre, index) => (
-                            <div key={tyre.id} className="p-4 border border-gray-200 rounded-xl bg-gray-50 relative">
+                            <div key={`${tyre.id}-${index}`} className="p-4 border border-gray-200 rounded-xl bg-gray-50 relative">
                                 <div className="flex items-center mb-4">
                                     <span className="bg-green-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold me-3">{index + 1}</span>
                                     <h4 className="font-bold text-gray-700">{t('tyreDetails')}</h4>

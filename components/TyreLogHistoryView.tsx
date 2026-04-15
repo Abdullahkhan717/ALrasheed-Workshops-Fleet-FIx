@@ -157,8 +157,8 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
 
       <div className="space-y-4">
         {filteredLogs.length > 0 ? (
-          filteredLogs.map((log) => (
-            <div key={log.id} className="bg-white rounded-xl shadow-md p-4 md:p-6 border border-gray-100">
+          filteredLogs.map((log, index) => (
+            <div key={`${log.id}-${index}`} className="bg-white rounded-xl shadow-md p-4 md:p-6 border border-gray-100">
               <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">
@@ -202,7 +202,7 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
                       return String(td.condition || '').toLowerCase() === tyreTypeFilter.toLowerCase();
                     }).map((td, idx) => (
                       <div 
-                        key={td.id || idx} 
+                        key={`${td.id || idx}-${idx}`} 
                         className="bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm cursor-pointer hover:border-green-300 hover:bg-green-50 transition-all group"
                         onClick={() => setSelectedSerial(td.serialNumber)}
                       >

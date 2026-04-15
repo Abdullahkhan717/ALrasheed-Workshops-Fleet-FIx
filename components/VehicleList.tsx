@@ -321,8 +321,8 @@ export const VehicleList: React.FC<VehicleListProps> = ({
       {/* Mobile Card View */}
       <div className="md:hidden space-y-4">
         {currentVehicles.length > 0 ? (
-            currentVehicles.map(vehicle => (
-                <div key={vehicle.id} className="bg-white rounded-xl shadow-md p-4 space-y-3">
+            currentVehicles.map((vehicle, index) => (
+                <div key={`${vehicle.id}-${index}`} className="bg-white rounded-xl shadow-md p-4 space-y-3">
                     <div className="flex justify-between items-start">
                         <div>
                             <span className="text-xs font-semibold text-green-600 uppercase tracking-wider">{t(vehicle.vehiclesType)}</span>
