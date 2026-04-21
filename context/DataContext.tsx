@@ -355,13 +355,43 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [fetchData]);
 
   const createData = async (sheetName: string, payload: any) => {
-    const result = await createRecord(payload, sheetName);
+    let finalPayload = payload;
+    if (sheetName === 'Vehicles') {
+        finalPayload = {
+            ...payload,
+            VehiclesType: payload.VehiclesType || payload.vehiclesType,
+            VehicleNumber: payload.VehicleNumber || payload.vehicleNumber,
+            VehicleCompanyNumber: payload.VehicleCompanyNumber || payload.vehicleCompanyNumber,
+            Make: payload.Make || payload.make,
+            ModelNumber: payload.ModelNumber || payload.modelNumber,
+            SerialNumber: payload.SerialNumber || payload.serialNumber,
+            BranchLocation: payload.BranchLocation || payload.branchLocation,
+            ArabicName: payload.ArabicName || payload.arabicName,
+            Condition: payload.Condition || payload.condition
+        };
+    }
+    const result = await createRecord(finalPayload, sheetName);
     await fetchData(true);
     return result;
   };
 
   const updateData = async (sheetName: string, payload: any) => {
-    const result = await updateRecord(payload, sheetName);
+    let finalPayload = payload;
+    if (sheetName === 'Vehicles') {
+        finalPayload = {
+            ...payload,
+            VehiclesType: payload.VehiclesType || payload.vehiclesType,
+            VehicleNumber: payload.VehicleNumber || payload.vehicleNumber,
+            VehicleCompanyNumber: payload.VehicleCompanyNumber || payload.vehicleCompanyNumber,
+            Make: payload.Make || payload.make,
+            ModelNumber: payload.ModelNumber || payload.modelNumber,
+            SerialNumber: payload.SerialNumber || payload.serialNumber,
+            BranchLocation: payload.BranchLocation || payload.branchLocation,
+            ArabicName: payload.ArabicName || payload.arabicName,
+            Condition: payload.Condition || payload.condition
+        };
+    }
+    const result = await updateRecord(finalPayload, sheetName);
     await fetchData(true);
     return result;
   };

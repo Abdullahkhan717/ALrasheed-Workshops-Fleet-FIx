@@ -218,9 +218,14 @@ const AppContent: React.FC = () => {
   };
 
   const handleCreateVehicle = async (vehicle: Omit<Vehicle, 'id'>) => {
-    if (vehicles.some(v => v.serialNumber === vehicle.serialNumber)) {
-       alert(t('alert_serialExists'));
-       throw new Error('Serial number exists');
+    const trimmedSerial = String(vehicle.serialNumber || '').trim().toLowerCase();
+    const existing = vehicles.find(v => String(v.serialNumber || '').trim().toLowerCase() === trimmedSerial);
+    
+    if (existing) {
+       const vehicleInfo = existing.vehicleCompanyNumber ? `${existing.vehicleCompanyNumber}-${existing.vehicleNumber}` : existing.vehicleNumber;
+       if (!window.confirm(t('alert_serialExistsConfirm').replace('{{vehicle}}', vehicleInfo))) {
+         return;
+       }
     }
     const newVehicle: Vehicle = { ...vehicle, id: generateId() };
     return await createData('Vehicles', newVehicle);

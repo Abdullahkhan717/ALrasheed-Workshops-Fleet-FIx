@@ -67,9 +67,11 @@ export const VehicleList: React.FC<VehicleListProps> = ({
 
   const handleAddVehicle = async (vehicle: Omit<Vehicle, 'id'>) => {
     try {
-      await addVehicle(vehicle);
-      handleCloseModal();
-      alert(t('alert_vehicleAdded'));
+      const result = await addVehicle(vehicle);
+      if (result) {
+        handleCloseModal();
+        alert(t('alert_vehicleAdded'));
+      }
     } catch (error) {
       console.error(error);
       alert(t('alert_vehicleAddFailed') || 'Failed to add vehicle. Please check your connection and Google Sheet setup.');
