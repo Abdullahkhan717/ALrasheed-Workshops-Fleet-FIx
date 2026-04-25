@@ -47,7 +47,8 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
         [t('driver')]: log.driverName,
         [t('mileage')]: log.mileage,
         [t('oilTypes')]: log.oilTypes?.join(', ') || '',
-        [t('filters')]: log.filters?.join(', ') || ''
+        [t('filters')]: log.filters?.join(', ') || '',
+        [t('remarks')]: log.remarks || ''
       };
     });
     const worksheet = XLSX.utils.json_to_sheet(data);
@@ -163,6 +164,12 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
                         ))}
                       </div>
                     </div>
+                    {log.remarks && (
+                      <div className="col-span-2 pt-2 border-t border-gray-100">
+                        <p className="text-gray-500 font-medium">{t('remarks')}</p>
+                        <p className="text-gray-700 italic">"{log.remarks}"</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

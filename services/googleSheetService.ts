@@ -1,6 +1,6 @@
 import type { Vehicle, Workshop, RepairRequest, User } from '../types';
 
-const SCRIPT_URL = (import.meta.env.VITE_SHEETDB_URL || 'https://script.google.com/macros/s/AKfycbz4AnJ6u6GLnUX_bGHlfSyNukOX-8xDMtI6D8D3MF-DgkfuiYTleWZ-tau_2c0Y4DZG/exec').trim();
+const SCRIPT_URL = (import.meta.env.VITE_SHEETDB_URL || 'https://script.google.com/macros/s/AKfycbwKtP8wgMZAnkrvDZS0qmeiunCrRglhtVHiKMx8qzUnqs46bMfIjBhQRLRqfUSynTY/exec').trim();
 
 export const getAllData = async () => {
   try {

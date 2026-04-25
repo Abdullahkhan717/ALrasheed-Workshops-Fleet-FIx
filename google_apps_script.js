@@ -81,7 +81,12 @@ function getAllData() {
 
 function createRecord(sheet, data) {
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const row = headers.map(header => data[header] || '');
+  const row = headers.map(header => {
+    if (data[header] !== undefined) return data[header];
+    // Case-insensitive fallback
+    const key = Object.keys(data).find(k => k.toLowerCase() === header.toLowerCase());
+    return key ? data[key] : '';
+  });
   sheet.appendRow(row);
   return ContentService.createTextOutput(JSON.stringify({ result: 'success' }))
     .setMimeType(ContentService.MimeType.JSON);
@@ -96,7 +101,13 @@ function updateRecord(sheet, data) {
   
   for (let i = 1; i < values.length; i++) {
     if (String(values[i][idIndex]) === String(data.id)) {
-      const row = headers.map(header => data[header] !== undefined ? data[header] : values[i][headers.indexOf(header)]);
+      const row = headers.map(header => {
+        if (data[header] !== undefined) return data[header];
+        // Case-insensitive fallback
+        const key = Object.keys(data).find(k => k.toLowerCase() === header.toLowerCase());
+        if (key !== undefined) return data[key];
+        return values[i][headers.indexOf(header)];
+      });
       sheet.getRange(i + 1, 1, 1, headers.length).setValues([row]);
       return ContentService.createTextOutput(JSON.stringify({ result: 'success' }))
         .setMimeType(ContentService.MimeType.JSON);
@@ -125,6 +136,19 @@ function deleteRecord(sheet, id) {
 }
 
 /**
- * NEW HEADERS FOR TyreLogs:
- * id, Vehicle ID, Date, Time, Mileage, Driver Name, Workshop Location, brand, Tyre Type, Tyre Size, Serial Number, From Vehicle, remarks
+ * EXPECTED HEADERS FOR SHEETS:
+ * 
+ * Vehicles: id, VehiclesType, VehicleNumber, VehicleCompanyNumber, Make, ModelNumber, SerialNumber, BranchLocation, ArabicName, Condition
+ * 
+ * RepairRequests: id, jobCardId, vehicleId, driverName, mileage, purpose, faults, workshopId, location, status, date, time
+ * 
+ * OilLogs: id, vehicleId, driverName, mileage, workshopId, location, oilTypes, filters, remarks, date, time
+ * 
+ * TyreLogs: id, Vehicle ID, Date, Time, Mileage, Driver Name, Workshop Location, brand, Tyre Type, Tyre Size, Serial Number, From Vehicle, remarks
+ * 
+ * Workshops: id, name, location
+ * 
+ * Locations: id, name
+ * 
+ * Users: id, email, role, location
  */

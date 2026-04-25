@@ -60,6 +60,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [customOil, setCustomOil] = useState('');
   const [customFilter, setCustomFilter] = useState('');
+  const [oilRemarks, setOilRemarks] = useState('');
 
   // Tyre Log specific state
   const [tyres, setTyres] = useState<{ id: string, condition: string, size: string, serialNumber: string, brand: string, fromVehicleId: string, remarks: string, isAddingNewBrand: boolean }[]>(
@@ -162,6 +163,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
     setSearchQuery('');
     setDriverName('');
     setMileage('');
+    setOilRemarks('');
     setPurpose('Repairing');
     setFaults([{ id: generateId(), description: '', workshopId: '', mechanicName: '' }]);
     setSelectedOils([]);
@@ -221,6 +223,7 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
         location: fromLocation || currentUser?.location || '',
         oilTypes: JSON.stringify(oilList),
         filters: JSON.stringify(filterList),
+        remarks: oilRemarks,
         date: `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`,
         time: now.toLocaleTimeString()
       };
@@ -951,6 +954,17 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
                             onChange={(e) => setMileage(e.target.value)}
                             className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                             required
+                        />
+                    </div>
+                    <div className="md:col-span-2">
+                        <label htmlFor="oilRemarks" className="block text-sm font-medium text-gray-700">{t('remarks')}</label>
+                        <textarea
+                            id="oilRemarks"
+                            value={oilRemarks}
+                            onChange={(e) => setOilRemarks(e.target.value)}
+                            placeholder={t('purpose_other')}
+                            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                            rows={3}
                         />
                     </div>
                 </div>

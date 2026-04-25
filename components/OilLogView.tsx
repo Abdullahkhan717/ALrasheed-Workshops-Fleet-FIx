@@ -20,6 +20,7 @@ export const OilLogView: React.FC = () => {
   const [customOil, setCustomOil] = useState('');
   const [filters, setFilters] = useState<string[]>([]);
   const [customFilter, setCustomFilter] = useState('');
+  const [remarks, setRemarks] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [customDate, setCustomDate] = useState(new Date().toISOString().split('T')[0]);
   const [customTime, setCustomTime] = useState(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
@@ -86,6 +87,7 @@ export const OilLogView: React.FC = () => {
         location: finalLocation,
         oilTypes: finalOilTypes,
         filters: finalFilters,
+        remarks: remarks,
         date: now.toISOString(),
         time: now.toISOString()
       };
@@ -105,6 +107,7 @@ export const OilLogView: React.FC = () => {
         location: newLog.location,
         oilTypes: JSON.stringify(newLog.oilTypes),
         filters: JSON.stringify(newLog.filters),
+        remarks: newLog.remarks || '',
         date: formatDateForSheet(now),
         time: now.toLocaleTimeString()
       };
@@ -123,6 +126,7 @@ export const OilLogView: React.FC = () => {
       setCustomOil('');
       setFilters([]);
       setCustomFilter('');
+      setRemarks('');
     } catch (error) {
       console.error('Failed to save oil log:', error);
       alert('Failed to save oil log.');
@@ -225,6 +229,17 @@ export const OilLogView: React.FC = () => {
                 required
               />
             </div>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('remarks')}</label>
+            <textarea
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+              placeholder={t('remarks')}
+              className="w-full p-2 border border-gray-300 rounded-md"
+              rows={3}
+            />
           </div>
         </div>
 

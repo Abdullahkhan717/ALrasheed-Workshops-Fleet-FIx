@@ -178,6 +178,12 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
                       ))}
                     </div>
                   </div>
+                  {log.remarks && (
+                    <div className="mt-2 pt-2 border-t border-gray-100">
+                      <p className="text-xs font-bold text-gray-500 uppercase mb-1">{t('remarks')}:</p>
+                      <p className="text-sm text-gray-700 italic">"{log.remarks}"</p>
+                    </div>
+                  )}
                 </div>
               ))
           ) : (

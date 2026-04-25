@@ -45,6 +45,7 @@ export interface OilLog {
   filters: string[];
   date: string;
   time: string;
+  remarks?: string;
 }
 
 export interface Workshop {

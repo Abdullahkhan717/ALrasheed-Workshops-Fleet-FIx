@@ -244,6 +244,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   location: String(log.location || log.Location || ''),
                   date: String(log.date || log.Date || ''),
                   time: String(log.time || log.Time || ''),
+                  remarks: String(log.remarks || log.Remarks || ''),
                   oilTypes: Array.isArray(oilTypes) ? oilTypes : [oilTypes],
                   filters: Array.isArray(filters) ? filters : [filters]
               } as OilLog;
