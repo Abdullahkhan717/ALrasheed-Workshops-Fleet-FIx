@@ -77,16 +77,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const rawVehicles = data[vKey] || [];
       const parsedVehicles = rawVehicles.map((v: any) => ({
-        id: String(v.id || ''),
+        id: String(v.id || v.ID || v.Id || ''),
         vehiclesType: String(v.VehiclesType || v.vehiclesType || ''),
         vehicleCompanyNumber: String(v.VehicleCompanyNumber || v.vehicleCompanyNumber || ''),
         vehicleNumber: String(v.VehicleNumber || v.vehicleNumber || ''),
-        make: String(v.make || ''),
-        modelNumber: String(v.modelNumber || ''),
-        serialNumber: String(v.serialNumber || ''),
-        branchLocation: String(v.branchLocation || ''),
-        arabicName: String(v.arabicName || ''),
-        condition: String(v.condition || '')
+        make: String(v.Make || v.make || ''),
+        modelNumber: String(v.ModelNumber || v.modelNumber || ''),
+        serialNumber: String(v.SerialNumber || v.serialNumber || ''),
+        branchLocation: String(v.BranchLocation || v.branchLocation || v.Location || v.location || ''),
+        arabicName: String(v.ArabicName || v.arabicName || ''),
+        condition: String(v.Condition || v.condition || '')
       }));
       setVehicles(uniqueById(parsedVehicles));
 
@@ -194,10 +194,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const rawTransfers = data[trKey] || [];
       const parsedTransfers = rawTransfers.map((tr: any) => ({
         id: String(tr.id || ''),
-        vehicleId: String(tr.vehicleId || ''),
-        fromLocation: String(tr.fromLocation || ''),
-        toLocation: String(tr.toLocation || ''),
-        requesterName: String(tr.requesterName || ''),
+        vehicleId: String(tr.vehicleId || tr.VehicleId || tr['Vehicle ID'] || ''),
+        fromLocation: String(tr.fromLocation || tr.FromLocation || tr['From Location'] || ''),
+        toLocation: String(tr.toLocation || tr.ToLocation || tr['To Location'] || ''),
+        requesterName: String(tr.requesterName || tr.RequesterName || tr['Requester Name'] || ''),
         reason: String(tr.reason || ''),
         remarks: String(tr.remarks || ''),
         status: (tr.status || 'Pending') as any,
@@ -367,6 +367,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ModelNumber: payload.ModelNumber || payload.modelNumber,
             SerialNumber: payload.SerialNumber || payload.serialNumber,
             BranchLocation: payload.BranchLocation || payload.branchLocation,
+            Location: payload.Location || payload.location || payload.branchLocation,
             ArabicName: payload.ArabicName || payload.arabicName,
             Condition: payload.Condition || payload.condition
         };
@@ -388,6 +389,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ModelNumber: payload.ModelNumber || payload.modelNumber,
             SerialNumber: payload.SerialNumber || payload.serialNumber,
             BranchLocation: payload.BranchLocation || payload.branchLocation,
+            Location: payload.Location || payload.location || payload.branchLocation,
             ArabicName: payload.ArabicName || payload.arabicName,
             Condition: payload.Condition || payload.condition
         };

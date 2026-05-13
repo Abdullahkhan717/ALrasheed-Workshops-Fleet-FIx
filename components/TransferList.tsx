@@ -49,7 +49,7 @@ export const TransferList: React.FC = () => {
 
       // If accepted, update vehicle location
       if (status === 'Accepted') {
-        const vehicle = vehicles.find(v => v.id === request.vehicleId);
+        const vehicle = vehicles.find(v => String(v.id).trim() === String(request.vehicleId).trim());
         if (vehicle) {
           await updateData('Vehicles', {
             ...vehicle,

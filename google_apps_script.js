@@ -95,12 +95,12 @@ function createRecord(sheet, data) {
 function updateRecord(sheet, data) {
   const values = sheet.getDataRange().getValues();
   const headers = values[0];
-  const idIndex = headers.indexOf('id');
+  const idIndex = headers.findIndex(h => h.toLowerCase() === 'id');
   
   if (idIndex === -1) throw new Error('No id column found');
   
   for (let i = 1; i < values.length; i++) {
-    if (String(values[i][idIndex]) === String(data.id)) {
+    if (String(values[i][idIndex]).trim() === String(data.id).trim()) {
       const row = headers.map(header => {
         if (data[header] !== undefined) return data[header];
         // Case-insensitive fallback
@@ -120,12 +120,12 @@ function updateRecord(sheet, data) {
 function deleteRecord(sheet, id) {
   const values = sheet.getDataRange().getValues();
   const headers = values[0];
-  const idIndex = headers.indexOf('id');
+  const idIndex = headers.findIndex(h => h.toLowerCase() === 'id');
   
   if (idIndex === -1) throw new Error('No id column found');
   
   for (let i = 1; i < values.length; i++) {
-    if (String(values[i][idIndex]) === String(id)) {
+    if (String(values[i][idIndex]).trim() === String(id).trim()) {
       sheet.deleteRow(i + 1);
       return ContentService.createTextOutput(JSON.stringify({ result: 'success' }))
         .setMimeType(ContentService.MimeType.JSON);

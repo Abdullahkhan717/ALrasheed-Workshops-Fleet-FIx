@@ -526,6 +526,8 @@ export const translations: { [lang: string]: { [key: string]: string } } = {
     Falken: 'Falken',
     Michelin: 'Michelin',
     enterNewBrand: 'Enter New Brand Name',
+    selectAll: 'Select All',
+    deselectAll: 'Deselect All',
   },
   ar: {
     // General
@@ -1052,5 +1054,7 @@ export const translations: { [lang: string]: { [key: string]: string } } = {
     Falken: 'فالكن',
     Michelin: 'ميشلان',
     enterNewBrand: 'أدخل اسم الماركة الجديدة',
+    selectAll: 'تحديد الكل',
+    deselectAll: 'إلغاء تحديد الكل',
   }
 };
