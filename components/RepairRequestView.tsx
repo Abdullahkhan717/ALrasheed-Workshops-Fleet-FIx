@@ -1135,8 +1135,10 @@ export const RepairRequestView: React.FC<RepairRequestViewProps> = ({
                                                 <option value="Yokohama">{t('Yokohama')}</option>
                                                 <option value="Falken">{t('Falken')}</option>
                                                 <option value="Michelin">{t('Michelin')}</option>
+                                                <option value="DEEstone">{t('DEEstone')}</option>
+                                                <option value="Jinyu">{t('Jinyu')}</option>
                                                 <option value="addNew" className="text-green-600 font-bold">+ {t('addNew')}</option>
-                                                {tyre.brand && !['Bridgestone', 'Continental', 'Goodyear', 'Pirelli', 'Hankook', 'BFGoodrich', 'Triangle', 'Yokohama', 'Falken', 'Michelin'].includes(tyre.brand) && (
+                                                {tyre.brand && !['Bridgestone', 'Continental', 'Goodyear', 'Pirelli', 'Hankook', 'BFGoodrich', 'Triangle', 'Yokohama', 'Falken', 'Michelin', 'DEEstone', 'Jinyu'].includes(tyre.brand) && (
                                                     <option value={tyre.brand}>{tyre.brand}</option>
                                                 )}
                                             </select>
