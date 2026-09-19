@@ -6,43 +6,24 @@ body {
 
 @media print {
   @page {
-    size: 210mm 148mm landscape;
-    margin: 5mm;
+    size: auto;
+    margin: 10mm;
   }
   body * {
     visibility: hidden;
   }
   #tyre-print-section, #tyre-print-section *,
+  #oil-print-section, #oil-print-section *,
   #print-section, #print-section *,
-  #receipts-print-section, #receipts-print-section *,
-  #oil-c5-print-section, #oil-c5-print-section * {
+  #receipts-print-section, #receipts-print-section * {
     visibility: visible;
   }
-  #tyre-print-section, #print-section, #receipts-print-section, #oil-c5-print-section {
+  #tyre-print-section, #oil-print-section, #print-section, #receipts-print-section {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     background: white;
     display: block !important;
-  }
-}
-
-@media print {
-  body.printing-oil-c5 {
-    background: white !important;
-  }
-  body.printing-oil-c5 #oil-c5-print-section {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 162mm !important;
-    min-height: 229mm !important;
-    max-width: 162mm !important;
-    margin: 0 auto !important;
-    padding: 6mm !important;
-    display: block !important;
-    box-sizing: border-box !important;
   }
 }

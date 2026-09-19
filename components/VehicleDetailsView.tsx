@@ -173,7 +173,7 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
                         className="flex items-center gap-1 text-xs bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-2.5 py-1 rounded-md transition shadow-xs"
                       >
                         <PrinterIcon className="h-3.5 w-3.5" />
-                        {t('viewOilCard') || 'C5 Card'}
+                        {t('viewOilDetails') || t('print')}
                       </button>
                     </div>
 

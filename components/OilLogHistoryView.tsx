@@ -279,7 +279,7 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
                       className="flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm transition"
                     >
                       <PrinterIcon className="h-3.5 w-3.5" />
-                      {t('viewOilCard') || 'View C5 Card & Share'}
+                      {t('viewOilDetails') || 'View Details & Print'}
                     </button>
                   </div>
                 </div>
