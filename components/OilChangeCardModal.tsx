@@ -98,248 +98,247 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
           </button>
         </div>
 
-        {/* Content - Identical layout to TyreDetailModal */}
+        {/* Content - Clean and organized */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
-          {/* Top Quick Summary Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-              <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">{t('currentOdometer') || t('mileage')}</p>
-              <p className="font-mono font-bold text-emerald-700 text-base">{currentOdo.toLocaleString()} KM</p>
+          {/* Top Truck & Current Service Details */}
+          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+              <div>
+                <p className="text-[10px] font-bold text-gray-500 uppercase">{t('truckNumber') || t('vehicle')}</p>
+                <p className="font-bold text-gray-900 text-sm">{vehicleTitle}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-500 uppercase">{t('driver')}</p>
+                <p className="font-bold text-gray-900 text-sm truncate">{log.driverName || '-'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-500 uppercase">{t('lastDateChange') || 'Last Date Change'}</p>
+                <p className="font-bold text-gray-900 text-sm">{formatDate(log.date)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-500 uppercase">{t('lastOdometer') || 'Last Odometer'}</p>
+                <p className="font-mono font-bold text-emerald-700 text-base">{currentOdo.toLocaleString()} KM</p>
+              </div>
             </div>
-            <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-              <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">{t('driver')}</p>
-              <p className="font-bold text-gray-800 text-sm truncate">{log.driverName}</p>
-            </div>
-            <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-              <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">{t('location') || t('workshop')}</p>
-              <p className="font-bold text-gray-800 text-sm truncate">{log.location}</p>
-            </div>
-            <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-              <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">{t('date')}</p>
-              <p className="font-bold text-gray-800 text-sm">{formatDate(log.date)}</p>
+
+            {/* Service Type */}
+            <div className="pt-2 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="font-bold text-gray-600 uppercase text-[11px]">{t('serviceType') || 'Service Type'}:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {(log.oilTypes && log.oilTypes.length > 0) && log.oilTypes.map((ot, i) => (
+                  <span key={i} className="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-xs border border-emerald-300">
+                    🛢️ {t(`oilLog_${ot}` as any) !== `oilLog_${ot}` ? t(`oilLog_${ot}` as any) : ot}
+                  </span>
+                ))}
+                {(log.filters && log.filters.length > 0) && log.filters.map((f, i) => (
+                  <span key={i} className="bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded text-xs border border-blue-300">
+                    ⚙️ {t(`oilLog_${f}` as any) !== `oilLog_${f}` ? t(`oilLog_${f}` as any) : f}
+                  </span>
+                ))}
+                {(!log.oilTypes?.length && !log.filters?.length) && (
+                  <span className="text-gray-400 italic">Routine check</span>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Service Details Card */}
-          <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs space-y-3">
-            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-              <CheckCircleIcon className="h-4 w-4 text-emerald-600" />
-              {t('servicesPerformed') || 'Services Performed'}
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div>
-                <p className="text-gray-500 font-bold mb-1.5 uppercase text-[10px]">{t('oilTypes')}:</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {(log.oilTypes && log.oilTypes.length > 0) ? (
-                    log.oilTypes.map((ot, i) => (
-                      <span key={i} className="bg-emerald-50 text-emerald-800 font-bold px-2 py-1 rounded border border-emerald-200">
-                        🛢️ {t(`oilLog_${ot}` as any) !== `oilLog_${ot}` ? t(`oilLog_${ot}` as any) : ot}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-gray-400 italic">None specified</span>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <p className="text-gray-500 font-bold mb-1.5 uppercase text-[10px]">{t('filters')}:</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {(log.filters && log.filters.length > 0) ? (
-                    log.filters.map((f, i) => (
-                      <span key={i} className="bg-blue-50 text-blue-800 font-bold px-2 py-1 rounded border border-blue-200">
-                        ⚙️ {t(`oilLog_${f}` as any) !== `oilLog_${f}` ? t(`oilLog_${f}` as any) : f}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-gray-400 italic">None specified</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {log.remarks && (
-              <div className="pt-2 border-t border-gray-100 text-xs">
-                <span className="font-bold text-gray-500 uppercase text-[10px] block mb-0.5">{t('remarks')}:</span>
-                <p className="text-gray-700 italic bg-gray-50 p-2 rounded">{log.remarks}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Next Due Odometer Schedule Section */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
-                {t('nextDueSchedule') || 'Next Due Schedule (Odometer)'}
+          {/* Next Due Schedule in Two Columns: First Oils, Next Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 1. Next Oils Column */}
+            <div className="border border-emerald-200 rounded-xl p-4 bg-emerald-50/40">
+              <h3 className="text-xs font-black text-emerald-950 uppercase tracking-wider mb-3 flex items-center justify-between">
+                <span>🛢️ Next Oils (الزيوت القادمة)</span>
+                <span className="text-[10px] font-normal text-emerald-700">Next Odometer</span>
               </h3>
-              <span className="text-xs text-gray-500 font-medium">
-                {language === 'ar' ? 'المواعيد القادمة المحسوبة' : 'Calculated target readings'}
-              </span>
+              <div className="space-y-2.5">
+                <div className="bg-white p-3 rounded-lg border border-emerald-200 flex justify-between items-center shadow-2xs">
+                  <div>
+                    <span className="font-bold text-xs text-gray-900 block">Next Engine Oil</span>
+                    <span className="text-[10px] text-gray-500">زيت الماكينة (+20,000 KM)</span>
+                  </div>
+                  <span className="font-mono font-black text-sm text-emerald-800 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+                    {(currentOdo + 20000).toLocaleString()} KM
+                  </span>
+                </div>
+
+                <div className="bg-white p-3 rounded-lg border border-emerald-200 flex justify-between items-center shadow-2xs">
+                  <div>
+                    <span className="font-bold text-xs text-gray-900 block">Next Gear Oil</span>
+                    <span className="text-[10px] text-gray-500">زيت القير (+60,000 KM)</span>
+                  </div>
+                  <span className="font-mono font-black text-sm text-emerald-800 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+                    {(currentOdo + 60000).toLocaleString()} KM
+                  </span>
+                </div>
+
+                <div className="bg-white p-3 rounded-lg border border-emerald-200 flex justify-between items-center shadow-2xs">
+                  <div>
+                    <span className="font-bold text-xs text-gray-900 block">Next Differential Oil</span>
+                    <span className="text-[10px] text-gray-500">زيت الدفرنش (+80,000 KM)</span>
+                  </div>
+                  <span className="font-mono font-black text-sm text-emerald-800 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+                    {(currentOdo + 80000).toLocaleString()} KM
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {schedule.map(item => {
-                const itemName = language === 'ar' ? item.nameAr : item.defaultName;
-                return (
-                  <div 
-                    key={item.id} 
-                    className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
-                      item.wasChanged 
-                        ? 'bg-emerald-50/70 border-emerald-300 shadow-xs' 
-                        : 'bg-white border-gray-200'
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${item.wasChanged ? 'bg-emerald-600' : 'bg-gray-300'}`} />
-                        <span className="font-bold text-xs text-gray-900">{itemName}</span>
-                      </div>
-                      <span className="text-[10px] text-gray-500 ms-3.5 block">
-                        (+{item.intervalKm.toLocaleString()} KM interval)
-                      </span>
-                    </div>
-
-                    <div className="text-end">
-                      <div className="font-mono font-black text-sm text-emerald-800 bg-white px-2.5 py-1 rounded border border-gray-200">
-                        {item.nextOdo.toLocaleString()} <span className="text-[10px] font-sans text-gray-500 font-bold">KM</span>
-                      </div>
-                    </div>
+            {/* 2. Next Filters Column */}
+            <div className="border border-blue-200 rounded-xl p-4 bg-blue-50/40">
+              <h3 className="text-xs font-black text-blue-950 uppercase tracking-wider mb-3 flex items-center justify-between">
+                <span>⚙️ Next Filters (الفلاتر القادمة)</span>
+                <span className="text-[10px] font-normal text-blue-700">Next Odometer</span>
+              </h3>
+              <div className="space-y-2.5">
+                <div className="bg-white p-3 rounded-lg border border-blue-200 flex justify-between items-center shadow-2xs">
+                  <div>
+                    <span className="font-bold text-xs text-gray-900 block">Next Oil Filter</span>
+                    <span className="text-[10px] text-gray-500">فلتر الزيت (+20,000 KM)</span>
                   </div>
-                );
-              })}
+                  <span className="font-mono font-black text-sm text-blue-900 bg-blue-50 px-2 py-1 rounded border border-blue-200">
+                    {(currentOdo + 20000).toLocaleString()} KM
+                  </span>
+                </div>
+
+                <div className="bg-white p-3 rounded-lg border border-blue-200 flex justify-between items-center shadow-2xs">
+                  <div>
+                    <span className="font-bold text-xs text-gray-900 block">Next Fuel (Diesel) Filter</span>
+                    <span className="text-[10px] text-gray-500">فلتر الديزل (+40,000 KM)</span>
+                  </div>
+                  <span className="font-mono font-black text-sm text-blue-900 bg-blue-50 px-2 py-1 rounded border border-blue-200">
+                    {(currentOdo + 40000).toLocaleString()} KM
+                  </span>
+                </div>
+
+                <div className="bg-white p-3 rounded-lg border border-blue-200 flex justify-between items-center shadow-2xs">
+                  <div>
+                    <span className="font-bold text-xs text-gray-900 block">Next Air Filter</span>
+                    <span className="text-[10px] text-gray-500">فلتر الهواء (+60,000 KM)</span>
+                  </div>
+                  <span className="font-mono font-black text-sm text-blue-900 bg-blue-50 px-2 py-1 rounded border border-blue-200">
+                    {(currentOdo + 60000).toLocaleString()} KM
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Hidden Print Section - EXACTLY like #tyre-print-section */}
+        {/* Clean, Focused Print Section (No extra clutter) */}
         <div id="oil-print-section" className="hidden print:block font-sans text-black p-8">
-          <div className="text-center mb-8 border-b-2 border-black pb-4">
-            <h1 className="text-3xl font-black uppercase tracking-widest">{t('oilDetails') || 'OIL SERVICE DETAILS'}</h1>
-            <p className="text-lg font-bold mt-2 font-mono">{vehicleTitle}</p>
-            <p className="text-sm font-bold mt-1 text-gray-600">Al Rasheed Co. / شركة الرشيد المحدودة</p>
+          <div className="text-center mb-6 border-b-2 border-black pb-3">
+            <h1 className="text-2xl font-black uppercase tracking-wider">OIL SERVICE & SCHEDULE / خدمة وجدول الزيوت</h1>
+            <p className="text-sm font-bold mt-1 text-gray-700">Al Rasheed Co. / شركة الرشيد المحدودة</p>
           </div>
 
-          <div className="grid grid-cols-4 gap-4 mb-8 bg-gray-50 p-4 border border-black">
-            <div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase">{t('vehicle')}</p>
-              <p className="text-base font-bold">{vehicleTitle}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase">{t('driver')}</p>
-              <p className="text-base font-bold">{log.driverName}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase">{t('currentOdometer') || 'CURRENT ODOMETER'}</p>
-              <p className="text-base font-bold font-mono">{currentOdo.toLocaleString()} KM</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase">{t('date')}</p>
-              <p className="text-base font-bold">{formatDate(log.date)} {log.time ? formatTime(log.time) : ''}</p>
-            </div>
-          </div>
-
-          {/* Record Details Box (same as Tyre Record) */}
-          <div className="border-2 border-black p-4 mb-6 page-break-inside-avoid">
-            <div className="flex justify-between items-center mb-4 border-b border-black pb-2">
-              <h2 className="text-xl font-bold uppercase">{t('oilServiceDetails') || 'SERVICE RECORD SUMMARY'}</h2>
-              <p className="font-bold font-mono">{formatDate(log.date)}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-y-4 gap-x-12">
-              <div className="flex justify-between border-b border-gray-300">
-                <span className="font-bold text-xs uppercase text-gray-600">{t('vehicle')}:</span>
-                <span className="font-bold">{vehicleTitle}</span>
+          {/* Truck and Last Change Details */}
+          <div className="border-2 border-black p-4 mb-6">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+              <div className="flex justify-between border-b border-gray-400 pb-1.5">
+                <span className="font-bold text-gray-700">Truck Number (رقم الشاحنة):</span>
+                <span className="font-black text-base">{vehicleTitle}</span>
               </div>
-              <div className="flex justify-between border-b border-gray-300">
-                <span className="font-bold text-xs uppercase text-gray-600">{t('workshop') || t('location')}:</span>
-                <span className="font-bold">{log.location}</span>
+              <div className="flex justify-between border-b border-gray-400 pb-1.5">
+                <span className="font-bold text-gray-700">Driver Name (اسم السائق):</span>
+                <span className="font-bold text-base">{log.driverName || '-'}</span>
               </div>
-              <div className="flex justify-between border-b border-gray-300">
-                <span className="font-bold text-xs uppercase text-gray-600">{t('driver')}:</span>
-                <span className="font-bold">{log.driverName}</span>
+              <div className="flex justify-between border-b border-gray-400 pb-1.5">
+                <span className="font-bold text-gray-700">Last Date Change (تاريخ التغيير):</span>
+                <span className="font-bold text-base">{formatDate(log.date)}</span>
               </div>
-              <div className="flex justify-between border-b border-gray-300">
-                <span className="font-bold text-xs uppercase text-gray-600">{t('currentOdometer') || t('mileage')}:</span>
-                <span className="font-bold font-mono">{currentOdo.toLocaleString()} KM</span>
+              <div className="flex justify-between border-b border-gray-400 pb-1.5">
+                <span className="font-bold text-gray-700">Last Odometer (قراءة العداد):</span>
+                <span className="font-black font-mono text-lg">{currentOdo.toLocaleString()} KM</span>
               </div>
-              <div className="flex justify-between border-b border-gray-300 col-span-2">
-                <span className="font-bold text-xs uppercase text-gray-600">{t('oilLog_oilTypes')}:</span>
-                <span className="font-bold">
-                  {(log.oilTypes || []).map(ot => t(`oilLog_${ot}` as any) !== `oilLog_${ot}` ? t(`oilLog_${ot}` as any) : ot).join(', ') || '-'}
-                </span>
-              </div>
-              <div className="flex justify-between border-b border-gray-300 col-span-2">
-                <span className="font-bold text-xs uppercase text-gray-600">{t('oilLog_filters')}:</span>
-                <span className="font-bold">
-                  {(log.filters || []).map(f => t(`oilLog_${f}` as any) !== `oilLog_${f}` ? t(`oilLog_${f}` as any) : f).join(', ') || '-'}
+              <div className="flex justify-between border-b border-gray-400 pb-1.5 col-span-2">
+                <span className="font-bold text-gray-700">Service Type (نوع الخدمة):</span>
+                <span className="font-bold text-sm text-end">
+                  {[
+                    ...(log.oilTypes || []).map(ot => t(`oilLog_${ot}` as any) !== `oilLog_${ot}` ? t(`oilLog_${ot}` as any) : ot),
+                    ...(log.filters || []).map(f => t(`oilLog_${f}` as any) !== `oilLog_${f}` ? t(`oilLog_${f}` as any) : f)
+                  ].join(', ') || '-'}
                 </span>
               </div>
             </div>
-            {log.remarks && (
-              <div className="mt-4">
-                <span className="font-bold text-xs uppercase text-gray-600 block mb-1">{t('remarks')}:</span>
-                <p className="text-sm italic">{log.remarks}</p>
+          </div>
+
+          {/* Next Oils and Next Filters Columns */}
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            {/* Column 1: Next Oils */}
+            <div className="border-2 border-black p-4">
+              <div className="border-b-2 border-black pb-2 mb-3">
+                <h2 className="text-base font-black uppercase tracking-wider">Next Oils (الزيوت القادمة)</h2>
               </div>
-            )}
-          </div>
+              <div className="space-y-3 text-sm">
+                <div className="p-2.5 border border-black bg-gray-50 flex justify-between items-center">
+                  <div>
+                    <span className="font-bold block">Next Engine Oil</span>
+                    <span className="text-xs text-gray-600">زيت الماكينة (+20,000 KM)</span>
+                  </div>
+                  <span className="font-mono font-black text-lg">
+                    {(currentOdo + 20000).toLocaleString()} KM
+                  </span>
+                </div>
 
-          {/* Next Due Odometer Schedule Table - Clean Black and White High Contrast */}
-          <div className="border-2 border-black p-4 mb-6 page-break-inside-avoid">
-            <div className="flex justify-between items-center mb-3 border-b border-black pb-2">
-              <h2 className="text-lg font-black uppercase tracking-wider">{t('nextDueSchedule') || 'NEXT DUE ODOMETER SCHEDULE'}</h2>
-              <span className="text-sm font-bold">جدول قراءات العداد القادمة</span>
-            </div>
-            
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b-2 border-black text-xs uppercase bg-gray-100">
-                  <th className="p-2 font-black">Service / Oil & Filter (الخدمة)</th>
-                  <th className="p-2 font-black">Interval (المسافة)</th>
-                  <th className="p-2 font-black">Current Service</th>
-                  <th className="p-2 font-black text-right">Next Due Odometer (قراءة العداد القادمة)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-300 text-sm">
-                {schedule.map(item => (
-                  <tr key={item.id} className={item.wasChanged ? "bg-gray-50 font-bold" : ""}>
-                    <td className="p-2.5">
-                      <span className="font-bold">{item.defaultName}</span>
-                      <span className="text-xs text-gray-600 block font-normal">{item.nameAr}</span>
-                    </td>
-                    <td className="p-2.5 font-mono">+{item.intervalKm.toLocaleString()} KM</td>
-                    <td className="p-2.5">
-                      {item.wasChanged ? (
-                        <span className="inline-block border border-black px-2 py-0.5 text-xs font-black uppercase">
-                          CHANGED (تم التغيير)
-                        </span>
-                      ) : (
-                        <span className="text-gray-500 text-xs">Routine</span>
-                      )}
-                    </td>
-                    <td className="p-2.5 font-mono font-black text-base text-right">
-                      {item.nextOdo.toLocaleString()} KM
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                <div className="p-2.5 border border-black bg-gray-50 flex justify-between items-center">
+                  <div>
+                    <span className="font-bold block">Next Gear Oil</span>
+                    <span className="text-xs text-gray-600">زيت القير (+60,000 KM)</span>
+                  </div>
+                  <span className="font-mono font-black text-lg">
+                    {(currentOdo + 60000).toLocaleString()} KM
+                  </span>
+                </div>
 
-          {/* Signatures & Stamp */}
-          <div className="grid grid-cols-2 gap-12 mt-10 mb-4 page-break-inside-avoid">
-            <div className="border-t-2 border-dashed border-black pt-2 text-center">
-              <p className="font-bold text-sm uppercase">{t('driver')} Signature</p>
-              <p className="text-xs text-gray-500">توقيع السائق</p>
+                <div className="p-2.5 border border-black bg-gray-50 flex justify-between items-center">
+                  <div>
+                    <span className="font-bold block">Next Differential Oil</span>
+                    <span className="text-xs text-gray-600">زيت الدفرنش (+80,000 KM)</span>
+                  </div>
+                  <span className="font-mono font-black text-lg">
+                    {(currentOdo + 80000).toLocaleString()} KM
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="border-t-2 border-dashed border-black pt-2 text-center">
-              <p className="font-bold text-sm uppercase">Foreman / Stamp</p>
-              <p className="text-xs text-gray-500">مسؤول الصيانة والختم</p>
-            </div>
-          </div>
 
-          <div className="mt-12 pt-8 border-t-2 border-black flex justify-between text-xs font-bold uppercase tracking-widest text-gray-500">
-            <span>AlRasheed Co Workshop System</span>
-            <span>Generated: {new Date().toLocaleString()}</span>
+            {/* Column 2: Next Filters */}
+            <div className="border-2 border-black p-4">
+              <div className="border-b-2 border-black pb-2 mb-3">
+                <h2 className="text-base font-black uppercase tracking-wider">Next Filters (الفلاتر القادمة)</h2>
+              </div>
+              <div className="space-y-3 text-sm">
+                <div className="p-2.5 border border-black bg-gray-50 flex justify-between items-center">
+                  <div>
+                    <span className="font-bold block">Next Oil Filter</span>
+                    <span className="text-xs text-gray-600">فلتر الزيت (+20,000 KM)</span>
+                  </div>
+                  <span className="font-mono font-black text-lg">
+                    {(currentOdo + 20000).toLocaleString()} KM
+                  </span>
+                </div>
+
+                <div className="p-2.5 border border-black bg-gray-50 flex justify-between items-center">
+                  <div>
+                    <span className="font-bold block">Next Fuel (Diesel) Filter</span>
+                    <span className="text-xs text-gray-600">فلتر الديزل (+40,000 KM)</span>
+                  </div>
+                  <span className="font-mono font-black text-lg">
+                    {(currentOdo + 40000).toLocaleString()} KM
+                  </span>
+                </div>
+
+                <div className="p-2.5 border border-black bg-gray-50 flex justify-between items-center">
+                  <div>
+                    <span className="font-bold block">Next Air Filter</span>
+                    <span className="text-xs text-gray-600">فلتر الهواء (+60,000 KM)</span>
+                  </div>
+                  <span className="font-mono font-black text-lg">
+                    {(currentOdo + 60000).toLocaleString()} KM
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
