@@ -5,9 +5,11 @@ import { useData } from '../context/DataContext';
 import { TruckIcon } from './Icons';
 import { generateId } from '../utils/idGenerator';
 import { formatDateForSheet } from '../utils/formatters';
+import { calculateOilSchedule, parseOdometer } from '../utils/oilSchedule';
+import { OilChangeCardModal } from './OilChangeCardModal';
 
 export const OilLogView: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { vehicles, locations: dbLocations, createData } = useData();
   
   const [selectedVehicleId, setSelectedVehicleId] = useState('');
@@ -24,6 +26,7 @@ export const OilLogView: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [customDate, setCustomDate] = useState(new Date().toISOString().split('T')[0]);
   const [customTime, setCustomTime] = useState(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+  const [savedCardLog, setSavedCardLog] = useState<{ log: OilLog; vehicle?: Vehicle } | null>(null);
 
   const handleLocationChange = (val: string) => {
     if (val === 'addNew') {
@@ -113,9 +116,11 @@ export const OilLogView: React.FC = () => {
       };
 
       await createData('OilLogs', payload);
-      alert(t('oilLog_success'));
       
-      // Reset form
+      // Open C5 card modal for printing/sharing
+      setSavedCardLog({ log: newLog, vehicle });
+      
+      // Reset form fields
       setSelectedVehicleId('');
       setDriverName('');
       setMileage('');
@@ -134,6 +139,9 @@ export const OilLogView: React.FC = () => {
       setIsSaving(false);
     }
   };
+
+  const parsedMileage = parseOdometer(mileage);
+  const liveSchedule = mileage ? calculateOilSchedule(mileage, oilTypes, filters) : [];
 
   return (
     <div className="p-4 md:p-8">
@@ -180,6 +188,26 @@ export const OilLogView: React.FC = () => {
               className="w-full p-2 border border-gray-300 rounded-md"
               required
             />
+            {parsedMileage > 0 && (
+              <div className="mt-2 p-3 bg-emerald-50/80 border border-emerald-300 rounded-lg">
+                <p className="text-xs font-black text-emerald-900 mb-1 flex items-center justify-between">
+                  <span>{t('nextDueSchedule') || 'Next Due Schedule (Odometer)'}:</span>
+                  <span className="text-[10px] text-emerald-700 font-bold">قراءة العداد القادمة تلقائياً</span>
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
+                  {liveSchedule.map(item => (
+                    <div key={item.id} className="bg-white p-1.5 rounded border border-emerald-200">
+                      <span className="text-[10px] text-gray-600 block truncate">
+                        {language === 'ar' ? item.nameAr : item.defaultName}
+                      </span>
+                      <span className="font-mono font-bold text-emerald-800 text-xs">
+                        {item.nextOdo.toLocaleString()} <span className="text-[9px] font-sans text-gray-500">KM</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div>
@@ -309,6 +337,14 @@ export const OilLogView: React.FC = () => {
           </button>
         </div>
       </form>
+
+      {savedCardLog && (
+        <OilChangeCardModal
+          log={savedCardLog.log}
+          vehicle={savedCardLog.vehicle}
+          onClose={() => setSavedCardLog(null)}
+        />
+      )}
     </div>
   );
 };

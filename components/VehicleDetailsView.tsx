@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import type { Vehicle, RepairRequest, OilLog } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAuth } from '../context/AuthContext';
-import { WhatsappIcon } from './Icons';
+import { WhatsappIcon, PrinterIcon } from './Icons';
 import { formatVehicleInfo, formatDate, formatTime, parseDate } from '../utils/formatters';
+import { calculateOilSchedule, parseOdometer } from '../utils/oilSchedule';
+import { OilChangeCardModal } from './OilChangeCardModal';
 
 interface VehicleDetailsViewProps {
   vehicle: Vehicle;
@@ -31,6 +33,7 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
   const { t, language } = useTranslation();
   const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'details' | 'repair' | 'oil'>('details');
+  const [selectedCardLog, setSelectedCardLog] = useState<OilLog | null>(null);
 
   const isHomeBranch = (branchLocation: string) => {
     if (!currentUser) return false;
@@ -149,47 +152,101 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
       )}
 
       {activeTab === 'oil' && (
-        <div className="space-y-4 mb-8 max-h-[400px] overflow-y-auto pr-2">
+        <div className="space-y-4 mb-8 max-h-[460px] overflow-y-auto pr-2">
           {oilLogs.filter(o => o.vehicleId === vehicle.id).length > 0 ? (
             oilLogs
               .filter(o => o.vehicleId === vehicle.id)
               .sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime())
-              .map(log => (
-                <div key={log.id} className="bg-white p-4 rounded-lg border border-green-100 shadow-sm">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-sm font-bold text-green-600">{formatDate(log.date)}</span>
-                    <span className="text-xs text-gray-500">{formatTime(log.time)}</span>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-1"><strong>{t('driver')}:</strong> {log.driverName}</p>
-                  <p className="text-sm text-gray-600 mb-1"><strong>{t('mileage')}:</strong> {log.mileage}</p>
-                  <div className="mt-2">
-                    <p className="text-xs font-bold text-gray-500 uppercase mb-1">{t('oilTypes')}:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {log.oilTypes.map((ot, i) => (
-                        <span key={i} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">{ot}</span>
-                      ))}
+              .map(log => {
+                const schedule = calculateOilSchedule(log.mileage, log.oilTypes, log.filters);
+                const currentOdo = parseOdometer(log.mileage);
+                return (
+                  <div key={log.id} className="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm hover:border-emerald-400 transition">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <span className="text-sm font-bold text-emerald-700">{formatDate(log.date)}</span>
+                        <span className="text-xs text-gray-500 ms-2">{formatTime(log.time)}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCardLog(log)}
+                        className="flex items-center gap-1 text-xs bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-2.5 py-1 rounded-md transition shadow-xs"
+                      >
+                        <PrinterIcon className="h-3.5 w-3.5" />
+                        {t('viewOilCard') || 'C5 Card'}
+                      </button>
                     </div>
-                  </div>
-                  <div className="mt-2">
-                    <p className="text-xs font-bold text-gray-500 uppercase mb-1">{t('filters')}:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {log.filters.map((f, i) => (
-                        <span key={i} className="bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded">{f}</span>
-                      ))}
+
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-2 bg-gray-50 p-2 rounded-lg">
+                      <p className="text-gray-600"><strong>{t('driver')}:</strong> {log.driverName}</p>
+                      <p className="text-gray-600">
+                        <strong>{t('currentOdometer') || t('mileage')}:</strong>{' '}
+                        <span className="font-mono font-bold text-emerald-700">{currentOdo.toLocaleString()} KM</span>
+                      </p>
                     </div>
-                  </div>
-                  {log.remarks && (
-                    <div className="mt-2 pt-2 border-t border-gray-100">
-                      <p className="text-xs font-bold text-gray-500 uppercase mb-1">{t('remarks')}:</p>
-                      <p className="text-sm text-gray-700 italic">"{log.remarks}"</p>
+
+                    <div className="mt-2">
+                      <p className="text-[11px] font-bold text-gray-500 uppercase mb-1">{t('oilTypes')}:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {log.oilTypes.map((ot, i) => (
+                          <span key={i} className="bg-emerald-100 text-emerald-900 text-xs px-2 py-0.5 rounded font-bold">
+                            {t(`oilLog_${ot}` as any) !== `oilLog_${ot}` ? t(`oilLog_${ot}` as any) : ot}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))
+
+                    <div className="mt-2">
+                      <p className="text-[11px] font-bold text-gray-500 uppercase mb-1">{t('filters')}:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {log.filters.map((f, i) => (
+                          <span key={i} className="bg-blue-100 text-blue-900 text-xs px-2 py-0.5 rounded font-bold">
+                            {t(`oilLog_${f}` as any) !== `oilLog_${f}` ? t(`oilLog_${f}` as any) : f}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Next Due Odometer Quick Schedule */}
+                    <div className="mt-3 pt-2 border-t border-gray-100 bg-emerald-50/50 p-2 rounded-lg">
+                      <p className="text-[10px] font-black uppercase text-emerald-900 mb-1.5 flex justify-between">
+                        <span>{t('nextDueSchedule') || 'Next Due Schedule'}:</span>
+                        <span className="text-emerald-700 font-bold">قراءة العداد القادمة</span>
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px]">
+                        {schedule.map(item => (
+                          <div key={item.id} className="bg-white p-1.5 rounded border border-emerald-200 flex flex-col justify-between">
+                            <span className="text-[10px] text-gray-700 font-medium truncate">
+                              {language === 'ar' ? item.nameAr : item.defaultName}
+                            </span>
+                            <span className="font-mono font-black text-emerald-800 text-xs mt-0.5">
+                              {item.nextOdo.toLocaleString()} <span className="text-[9px] font-sans text-gray-500">KM</span>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {log.remarks && (
+                      <div className="mt-2 pt-2 border-t border-gray-100">
+                        <p className="text-xs text-gray-700 italic">"{log.remarks}"</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
           ) : (
             <p className="text-center py-6 text-gray-500 bg-white rounded-lg border border-dashed border-gray-300">{language === 'ar' ? 'لا يوجد سجل تغيير زيت' : 'No oil change history found'}</p>
           )}
         </div>
+      )}
+
+      {selectedCardLog && (
+        <OilChangeCardModal
+          log={selectedCardLog}
+          vehicle={vehicle}
+          onClose={() => setSelectedCardLog(null)}
+        />
       )}
 
       <div className="flex flex-wrap gap-3 pt-6 border-t border-green-200">
