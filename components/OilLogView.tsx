@@ -10,7 +10,7 @@ import { OilChangeCardModal } from './OilChangeCardModal';
 
 export const OilLogView: React.FC = () => {
   const { t, language } = useTranslation();
-  const { vehicles, locations: dbLocations, createData } = useData();
+  const { vehicles, locations: dbLocations, createData, oilLogs } = useData();
   
   const [selectedVehicleId, setSelectedVehicleId] = useState('');
   const [driverName, setDriverName] = useState('');
@@ -141,7 +141,9 @@ export const OilLogView: React.FC = () => {
   };
 
   const parsedMileage = parseOdometer(mileage);
-  const liveSchedule = mileage ? calculateOilSchedule(mileage, oilTypes, filters) : [];
+  const liveSchedule = mileage 
+    ? calculateOilSchedule(mileage, oilTypes, filters, selectedVehicleId, oilLogs, vehicles) 
+    : [];
 
   return (
     <div className="p-4 md:p-8">
@@ -342,6 +344,7 @@ export const OilLogView: React.FC = () => {
         <OilChangeCardModal
           log={savedCardLog.log}
           vehicle={savedCardLog.vehicle}
+          allLogs={[...oilLogs, savedCardLog.log]}
           onClose={() => setSavedCardLog(null)}
         />
       )}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { OilLog, Vehicle } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
+import { useData } from '../context/DataContext';
 import { 
   XMarkIcon, 
   PrinterIcon, 
@@ -15,19 +16,41 @@ import { calculateOilSchedule, parseOdometer } from '../utils/oilSchedule';
 interface OilChangeCardModalProps {
   log: OilLog;
   vehicle?: Vehicle;
+  allLogs?: OilLog[];
   onClose: () => void;
 }
 
 export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
   log,
   vehicle,
+  allLogs,
   onClose,
 }) => {
   const { t, language } = useTranslation();
+  const { oilLogs: contextOilLogs, vehicles: contextVehicles } = useData();
   const [copied, setCopied] = useState(false);
 
+  const logsToUse = allLogs && allLogs.length > 0 ? allLogs : contextOilLogs;
+  const vehiclesToUse = contextVehicles;
+
   const currentOdo = parseOdometer(log.mileage);
-  const schedule = calculateOilSchedule(log.mileage, log.oilTypes, log.filters);
+  const schedule = calculateOilSchedule(
+    log.mileage,
+    log.oilTypes,
+    log.filters,
+    log.vehicleId,
+    logsToUse,
+    vehiclesToUse,
+    log.id,
+    log.date
+  );
+
+  const engineOilItem = schedule.find(s => s.id === 'engineOil');
+  const gearOilItem = schedule.find(s => s.id === 'gearOil');
+  const deffranceOilItem = schedule.find(s => s.id === 'deffranceOil');
+  const oilFilterItem = schedule.find(s => s.id === 'oilFilter');
+  const dieselFilterItem = schedule.find(s => s.id === 'dieselFilter');
+  const airFilterItem = schedule.find(s => s.id === 'airFilter');
 
   const vehicleTitle = vehicle 
     ? formatVehicleInfo(vehicle, t, log.vehicleId)
@@ -151,33 +174,54 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
                 <span className="text-[10px] font-normal text-emerald-700">Next Odometer</span>
               </h3>
               <div className="space-y-2.5">
-                <div className="bg-white p-3 rounded-lg border border-emerald-200 flex justify-between items-center shadow-2xs">
+                <div className={`bg-white p-3 rounded-lg border flex justify-between items-center shadow-2xs ${engineOilItem?.wasChanged ? 'border-emerald-300 ring-1 ring-emerald-300' : 'border-emerald-200'}`}>
                   <div>
-                    <span className="font-bold text-xs text-gray-900 block">Next Engine Oil</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-xs text-gray-900 block">Next Engine Oil</span>
+                      {engineOilItem?.wasChanged ? (
+                        <span className="text-[9px] text-emerald-700 bg-emerald-100 font-bold px-1 rounded">✓ {language === 'ar' ? 'تم التغيير' : 'Changed'}</span>
+                      ) : (
+                        <span className="text-[9px] text-gray-500 bg-gray-100 font-medium px-1 rounded">{language === 'ar' ? 'سابق' : 'Previous'}</span>
+                      )}
+                    </div>
                     <span className="text-[10px] text-gray-500">زيت الماكينة (+20,000 KM)</span>
                   </div>
                   <span className="font-mono font-black text-sm text-emerald-800 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-                    {(currentOdo + 20000).toLocaleString()} KM
+                    {(engineOilItem ? engineOilItem.nextOdo : currentOdo + 20000).toLocaleString()} KM
                   </span>
                 </div>
 
-                <div className="bg-white p-3 rounded-lg border border-emerald-200 flex justify-between items-center shadow-2xs">
+                <div className={`bg-white p-3 rounded-lg border flex justify-between items-center shadow-2xs ${gearOilItem?.wasChanged ? 'border-emerald-300 ring-1 ring-emerald-300' : 'border-emerald-200'}`}>
                   <div>
-                    <span className="font-bold text-xs text-gray-900 block">Next Gear Oil</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-xs text-gray-900 block">Next Gear Oil</span>
+                      {gearOilItem?.wasChanged ? (
+                        <span className="text-[9px] text-emerald-700 bg-emerald-100 font-bold px-1 rounded">✓ {language === 'ar' ? 'تم التغيير' : 'Changed'}</span>
+                      ) : (
+                        <span className="text-[9px] text-amber-700 bg-amber-50 border border-amber-200 font-medium px-1 rounded">{language === 'ar' ? 'سابق' : 'Previous'}</span>
+                      )}
+                    </div>
                     <span className="text-[10px] text-gray-500">زيت القير (+60,000 KM)</span>
                   </div>
                   <span className="font-mono font-black text-sm text-emerald-800 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-                    {(currentOdo + 60000).toLocaleString()} KM
+                    {(gearOilItem ? gearOilItem.nextOdo : currentOdo + 60000).toLocaleString()} KM
                   </span>
                 </div>
 
-                <div className="bg-white p-3 rounded-lg border border-emerald-200 flex justify-between items-center shadow-2xs">
+                <div className={`bg-white p-3 rounded-lg border flex justify-between items-center shadow-2xs ${deffranceOilItem?.wasChanged ? 'border-emerald-300 ring-1 ring-emerald-300' : 'border-emerald-200'}`}>
                   <div>
-                    <span className="font-bold text-xs text-gray-900 block">Next Differential Oil</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-xs text-gray-900 block">Next Differential Oil</span>
+                      {deffranceOilItem?.wasChanged ? (
+                        <span className="text-[9px] text-emerald-700 bg-emerald-100 font-bold px-1 rounded">✓ {language === 'ar' ? 'تم التغيير' : 'Changed'}</span>
+                      ) : (
+                        <span className="text-[9px] text-amber-700 bg-amber-50 border border-amber-200 font-medium px-1 rounded">{language === 'ar' ? 'سابق' : 'Previous'}</span>
+                      )}
+                    </div>
                     <span className="text-[10px] text-gray-500">زيت الدفرنش (+80,000 KM)</span>
                   </div>
                   <span className="font-mono font-black text-sm text-emerald-800 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-                    {(currentOdo + 80000).toLocaleString()} KM
+                    {(deffranceOilItem ? deffranceOilItem.nextOdo : currentOdo + 80000).toLocaleString()} KM
                   </span>
                 </div>
               </div>
@@ -190,33 +234,54 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
                 <span className="text-[10px] font-normal text-blue-700">Next Odometer</span>
               </h3>
               <div className="space-y-2.5">
-                <div className="bg-white p-3 rounded-lg border border-blue-200 flex justify-between items-center shadow-2xs">
+                <div className={`bg-white p-3 rounded-lg border flex justify-between items-center shadow-2xs ${oilFilterItem?.wasChanged ? 'border-blue-300 ring-1 ring-blue-300' : 'border-blue-200'}`}>
                   <div>
-                    <span className="font-bold text-xs text-gray-900 block">Next Oil Filter</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-xs text-gray-900 block">Next Oil Filter</span>
+                      {oilFilterItem?.wasChanged ? (
+                        <span className="text-[9px] text-blue-700 bg-blue-100 font-bold px-1 rounded">✓ {language === 'ar' ? 'تم التغيير' : 'Changed'}</span>
+                      ) : (
+                        <span className="text-[9px] text-gray-500 bg-gray-100 font-medium px-1 rounded">{language === 'ar' ? 'سابق' : 'Previous'}</span>
+                      )}
+                    </div>
                     <span className="text-[10px] text-gray-500">فلتر الزيت (+20,000 KM)</span>
                   </div>
                   <span className="font-mono font-black text-sm text-blue-900 bg-blue-50 px-2 py-1 rounded border border-blue-200">
-                    {(currentOdo + 20000).toLocaleString()} KM
+                    {(oilFilterItem ? oilFilterItem.nextOdo : currentOdo + 20000).toLocaleString()} KM
                   </span>
                 </div>
 
-                <div className="bg-white p-3 rounded-lg border border-blue-200 flex justify-between items-center shadow-2xs">
+                <div className={`bg-white p-3 rounded-lg border flex justify-between items-center shadow-2xs ${dieselFilterItem?.wasChanged ? 'border-blue-300 ring-1 ring-blue-300' : 'border-blue-200'}`}>
                   <div>
-                    <span className="font-bold text-xs text-gray-900 block">Next Fuel (Diesel) Filter</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-xs text-gray-900 block">Next Fuel (Diesel) Filter</span>
+                      {dieselFilterItem?.wasChanged ? (
+                        <span className="text-[9px] text-blue-700 bg-blue-100 font-bold px-1 rounded">✓ {language === 'ar' ? 'تم التغيير' : 'Changed'}</span>
+                      ) : (
+                        <span className="text-[9px] text-amber-700 bg-amber-50 border border-amber-200 font-medium px-1 rounded">{language === 'ar' ? 'سابق' : 'Previous'}</span>
+                      )}
+                    </div>
                     <span className="text-[10px] text-gray-500">فلتر الديزل (+40,000 KM)</span>
                   </div>
                   <span className="font-mono font-black text-sm text-blue-900 bg-blue-50 px-2 py-1 rounded border border-blue-200">
-                    {(currentOdo + 40000).toLocaleString()} KM
+                    {(dieselFilterItem ? dieselFilterItem.nextOdo : currentOdo + 40000).toLocaleString()} KM
                   </span>
                 </div>
 
-                <div className="bg-white p-3 rounded-lg border border-blue-200 flex justify-between items-center shadow-2xs">
+                <div className={`bg-white p-3 rounded-lg border flex justify-between items-center shadow-2xs ${airFilterItem?.wasChanged ? 'border-blue-300 ring-1 ring-blue-300' : 'border-blue-200'}`}>
                   <div>
-                    <span className="font-bold text-xs text-gray-900 block">Next Air Filter</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-xs text-gray-900 block">Next Air Filter</span>
+                      {airFilterItem?.wasChanged ? (
+                        <span className="text-[9px] text-blue-700 bg-blue-100 font-bold px-1 rounded">✓ {language === 'ar' ? 'تم التغيير' : 'Changed'}</span>
+                      ) : (
+                        <span className="text-[9px] text-amber-700 bg-amber-50 border border-amber-200 font-medium px-1 rounded">{language === 'ar' ? 'سابق' : 'Previous'}</span>
+                      )}
+                    </div>
                     <span className="text-[10px] text-gray-500">فلتر الهواء (+60,000 KM)</span>
                   </div>
                   <span className="font-mono font-black text-sm text-blue-900 bg-blue-50 px-2 py-1 rounded border border-blue-200">
-                    {(currentOdo + 60000).toLocaleString()} KM
+                    {(airFilterItem ? airFilterItem.nextOdo : currentOdo + 60000).toLocaleString()} KM
                   </span>
                 </div>
               </div>
@@ -276,7 +341,7 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
                     <span className="text-xs text-gray-600">زيت الماكينة (+20,000 KM)</span>
                   </div>
                   <span className="font-mono font-black text-lg">
-                    {(currentOdo + 20000).toLocaleString()} KM
+                    {(engineOilItem ? engineOilItem.nextOdo : currentOdo + 20000).toLocaleString()} KM
                   </span>
                 </div>
 
@@ -286,7 +351,7 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
                     <span className="text-xs text-gray-600">زيت القير (+60,000 KM)</span>
                   </div>
                   <span className="font-mono font-black text-lg">
-                    {(currentOdo + 60000).toLocaleString()} KM
+                    {(gearOilItem ? gearOilItem.nextOdo : currentOdo + 60000).toLocaleString()} KM
                   </span>
                 </div>
 
@@ -296,7 +361,7 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
                     <span className="text-xs text-gray-600">زيت الدفرنش (+80,000 KM)</span>
                   </div>
                   <span className="font-mono font-black text-lg">
-                    {(currentOdo + 80000).toLocaleString()} KM
+                    {(deffranceOilItem ? deffranceOilItem.nextOdo : currentOdo + 80000).toLocaleString()} KM
                   </span>
                 </div>
               </div>
@@ -314,7 +379,7 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
                     <span className="text-xs text-gray-600">فلتر الزيت (+20,000 KM)</span>
                   </div>
                   <span className="font-mono font-black text-lg">
-                    {(currentOdo + 20000).toLocaleString()} KM
+                    {(oilFilterItem ? oilFilterItem.nextOdo : currentOdo + 20000).toLocaleString()} KM
                   </span>
                 </div>
 
@@ -324,7 +389,7 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
                     <span className="text-xs text-gray-600">فلتر الديزل (+40,000 KM)</span>
                   </div>
                   <span className="font-mono font-black text-lg">
-                    {(currentOdo + 40000).toLocaleString()} KM
+                    {(dieselFilterItem ? dieselFilterItem.nextOdo : currentOdo + 40000).toLocaleString()} KM
                   </span>
                 </div>
 
@@ -334,7 +399,7 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
                     <span className="text-xs text-gray-600">فلتر الهواء (+60,000 KM)</span>
                   </div>
                   <span className="font-mono font-black text-lg">
-                    {(currentOdo + 60000).toLocaleString()} KM
+                    {(airFilterItem ? airFilterItem.nextOdo : currentOdo + 60000).toLocaleString()} KM
                   </span>
                 </div>
               </div>

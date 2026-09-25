@@ -4,7 +4,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useAuth } from '../context/AuthContext';
 import { WhatsappIcon, PrinterIcon } from './Icons';
 import { formatVehicleInfo, formatDate, formatTime, parseDate } from '../utils/formatters';
-import { calculateOilSchedule, parseOdometer } from '../utils/oilSchedule';
+import { calculateOilSchedule, parseOdometer, areSameVehicle } from '../utils/oilSchedule';
 import { OilChangeCardModal } from './OilChangeCardModal';
 
 interface VehicleDetailsViewProps {
@@ -153,12 +153,12 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
 
       {activeTab === 'oil' && (
         <div className="space-y-4 mb-8 max-h-[460px] overflow-y-auto pr-2">
-          {oilLogs.filter(o => o.vehicleId === vehicle.id).length > 0 ? (
+          {oilLogs.filter(o => areSameVehicle(o.vehicleId, vehicle.id, [vehicle])).length > 0 ? (
             oilLogs
-              .filter(o => o.vehicleId === vehicle.id)
+              .filter(o => areSameVehicle(o.vehicleId, vehicle.id, [vehicle]))
               .sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime())
               .map(log => {
-                const schedule = calculateOilSchedule(log.mileage, log.oilTypes, log.filters);
+                const schedule = calculateOilSchedule(log.mileage, log.oilTypes, log.filters, vehicle.id, oilLogs, [vehicle], log.id, log.date);
                 const currentOdo = parseOdometer(log.mileage);
                 return (
                   <div key={log.id} className="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm hover:border-emerald-400 transition">
@@ -245,6 +245,7 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
         <OilChangeCardModal
           log={selectedCardLog}
           vehicle={vehicle}
+          allLogs={oilLogs}
           onClose={() => setSelectedCardLog(null)}
         />
       )}

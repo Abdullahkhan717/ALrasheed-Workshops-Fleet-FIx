@@ -45,7 +45,7 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
   const handleDownloadExcel = () => {
     const data = uniqueFilteredLogs.map(log => {
       const vehicle = vehicles.find(v => v.id === log.vehicleId);
-      const schedule = calculateOilSchedule(log.mileage, log.oilTypes, log.filters);
+      const schedule = calculateOilSchedule(log.mileage, log.oilTypes, log.filters, log.vehicleId, oilLogs, vehicles, log.id, log.date);
       const engineOilItem = schedule.find(s => s.id === 'engineOil');
       const gearOilItem = schedule.find(s => s.id === 'gearOil');
       const deffranceItem = schedule.find(s => s.id === 'deffranceOil');
@@ -143,7 +143,7 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
           uniqueFilteredLogs
             .map((log, index) => {
               const vehicle = vehicles.find(v => v.id === log.vehicleId);
-              const schedule = calculateOilSchedule(log.mileage, log.oilTypes, log.filters);
+              const schedule = calculateOilSchedule(log.mileage, log.oilTypes, log.filters, log.vehicleId, oilLogs, vehicles, log.id, log.date);
               const currentOdo = parseOdometer(log.mileage);
 
               return (
@@ -297,6 +297,7 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
         <OilChangeCardModal
           log={selectedCardLog.log}
           vehicle={selectedCardLog.vehicle}
+          allLogs={oilLogs}
           onClose={() => setSelectedCardLog(null)}
         />
       )}
