@@ -66,7 +66,7 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
         'Next Fuel Filter (+40k KM)': dieselFilterItem ? dieselFilterItem.nextOdo : '',
         'Next Gear Oil (+60k KM)': gearOilItem ? gearOilItem.nextOdo : '',
         'Next Air Filter (+60k KM)': airFilterItem ? airFilterItem.nextOdo : '',
-        'Next Diff Oil (+80k KM)': deffranceItem ? deffranceItem.nextOdo : '',
+        'Next Diff Oil (+100k KM)': deffranceItem ? deffranceItem.nextOdo : '',
         [t('remarks')]: log.remarks || ''
       };
     });

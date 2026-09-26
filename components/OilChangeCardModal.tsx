@@ -218,10 +218,10 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
                         <span className="text-[9px] text-amber-700 bg-amber-50 border border-amber-200 font-medium px-1 rounded">{language === 'ar' ? 'سابق' : 'Previous'}</span>
                       )}
                     </div>
-                    <span className="text-[10px] text-gray-500">زيت الدفرنش (+80,000 KM)</span>
+                    <span className="text-[10px] text-gray-500">زيت الدفرنش (+100,000 KM)</span>
                   </div>
                   <span className="font-mono font-black text-sm text-emerald-800 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-                    {(deffranceOilItem ? deffranceOilItem.nextOdo : currentOdo + 80000).toLocaleString()} KM
+                    {(deffranceOilItem ? deffranceOilItem.nextOdo : currentOdo + 100000).toLocaleString()} KM
                   </span>
                 </div>
               </div>
@@ -358,10 +358,10 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
                 <div className="p-2.5 border border-black bg-gray-50 flex justify-between items-center">
                   <div>
                     <span className="font-bold block">Next Differential Oil</span>
-                    <span className="text-xs text-gray-600">زيت الدفرنش (+80,000 KM)</span>
+                    <span className="text-xs text-gray-600">زيت الدفرنش (+100,000 KM)</span>
                   </div>
                   <span className="font-mono font-black text-lg">
-                    {(deffranceOilItem ? deffranceOilItem.nextOdo : currentOdo + 80000).toLocaleString()} KM
+                    {(deffranceOilItem ? deffranceOilItem.nextOdo : currentOdo + 100000).toLocaleString()} KM
                   </span>
                 </div>
               </div>

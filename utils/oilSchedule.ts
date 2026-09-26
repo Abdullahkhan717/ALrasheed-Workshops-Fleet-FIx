@@ -219,7 +219,7 @@ export const calculateOilSchedule = (
   const dieselFilterData = getNextOdo('dieselFilter', 40000, isDieselFilter);
   const gearOilData = getNextOdo('gearOil', 60000, isGearOil);
   const airFilterData = getNextOdo('airFilter', 60000, isAirFilter);
-  const deffranceOilData = getNextOdo('deffranceOil', 80000, isDeffranceOil);
+  const deffranceOilData = getNextOdo('deffranceOil', 100000, isDeffranceOil);
 
   return [
     {
@@ -287,7 +287,7 @@ export const calculateOilSchedule = (
       nameKey: 'oilLog_deffranceOil',
       defaultName: 'Differential Oil',
       nameAr: 'زيت الدفرنش',
-      intervalKm: 80000,
+      intervalKm: 100000,
       currentOdo,
       nextOdo: deffranceOilData.nextOdo,
       wasChanged: deffranceOilData.wasChanged,
