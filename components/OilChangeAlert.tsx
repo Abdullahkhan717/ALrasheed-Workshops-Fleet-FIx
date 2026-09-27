@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { useData } from '../context/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatVehicleInfo } from '../utils/formatters';
 import { TruckIcon, CalendarIcon, MapPinIcon, UserIcon, DownloadIcon, SearchIcon } from './Icons';
 import { formatDate, parseDate } from '../utils/formatters';
-import { areSameVehicle, parseOdometer } from '../utils/oilSchedule';
+import { normalizeVehicleKey, parseOdometer } from '../utils/oilSchedule';
 
 interface OilChangeAlertProps {
   onVehicleClick?: (vehicleId: string) => void;
@@ -20,51 +20,102 @@ export const OilChangeAlert: React.FC<OilChangeAlertProps> = ({ onVehicleClick }
   const [typeFilter, setTypeFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const now = new Date();
+  // Pre-index logs by vehicle id/plate/company number for instant O(1) retrieval
+  const logsByVehicleId = useMemo(() => {
+    const keyToVehicleId = new Map<string, string>();
+    vehicles.forEach(v => {
+      if (!v.id) return;
+      const vid = String(v.id);
+      keyToVehicleId.set(vid, vid);
+      const normId = normalizeVehicleKey(vid);
+      if (normId) keyToVehicleId.set(normId, vid);
 
-  // For each vehicle, find its latest oil log using robust matching and safe sorting
-  const overdueVehicles = vehicles.map(vehicle => {
-    const vehicleLogs = oilLogs.filter(log => areSameVehicle(log.vehicleId, vehicle.id, vehicles));
-    
-    // Sort logs: newest date first, then highest mileage first, safe from NaN
-    const sortedLogs = [...vehicleLogs].sort((a, b) => {
-      const timeA = parseDate(a.date).getTime() || 0;
-      const timeB = parseDate(b.date).getTime() || 0;
-      if (timeA !== timeB) return timeB - timeA;
-      const odoA = parseOdometer(a.mileage);
-      const odoB = parseOdometer(b.mileage);
-      if (odoA !== odoB) return odoB - odoA;
-      return 0;
+      if (v.vehicleNumber) {
+        keyToVehicleId.set(String(v.vehicleNumber), vid);
+        const normPlate = normalizeVehicleKey(v.vehicleNumber);
+        if (normPlate && !keyToVehicleId.has(normPlate)) {
+          keyToVehicleId.set(normPlate, vid);
+        }
+      }
+
+      if (v.vehicleCompanyNumber) {
+        const normComp = normalizeVehicleKey(v.vehicleCompanyNumber);
+        if (normComp && !keyToVehicleId.has(normComp)) {
+          keyToVehicleId.set(normComp, vid);
+        }
+      }
     });
 
-    const latestLog = sortedLogs.length > 0 ? sortedLogs[0] : null;
-    
-    let daysSince = Infinity;
-    if (latestLog) {
-      const logDate = parseDate(latestLog.date);
-      if (!isNaN(logDate.getTime())) {
-        const diffTime = now.getTime() - logDate.getTime();
-        daysSince = diffTime > 0 ? Math.floor(diffTime / (1000 * 60 * 60 * 24)) : 0;
-      }
-    }
+    const map = new Map<string, typeof oilLogs>();
+    oilLogs.forEach(log => {
+      const rawVid = String(log.vehicleId || '');
+      if (!rawVid) return;
+      const normVid = normalizeVehicleKey(rawVid);
+      const targetVehId = keyToVehicleId.get(rawVid) || keyToVehicleId.get(normVid) || rawVid;
 
-    return { vehicle, latestLog, daysSince };
-  }).filter(item => item.daysSince > 10);
+      let arr = map.get(targetVehId);
+      if (!arr) {
+        arr = [];
+        map.set(targetVehId, arr);
+      }
+      arr.push(log);
+    });
+
+    return map;
+  }, [vehicles, oilLogs]);
+
+  // For each vehicle, find its latest oil log using safe sorting and calculate days since
+  const overdueVehicles = useMemo(() => {
+    const now = new Date();
+    return vehicles.map(vehicle => {
+      const vehicleLogs = logsByVehicleId.get(vehicle.id) || [];
+      
+      // Sort logs: newest date first, then highest mileage first, safe from NaN
+      const sortedLogs = [...vehicleLogs].sort((a, b) => {
+        const timeA = parseDate(a.date).getTime() || 0;
+        const timeB = parseDate(b.date).getTime() || 0;
+        if (timeA !== timeB) return timeB - timeA;
+        const odoA = parseOdometer(a.mileage);
+        const odoB = parseOdometer(b.mileage);
+        if (odoA !== odoB) return odoB - odoA;
+        return 0;
+      });
+
+      const latestLog = sortedLogs.length > 0 ? sortedLogs[0] : null;
+      
+      let daysSince = Infinity;
+      if (latestLog) {
+        const logDate = parseDate(latestLog.date);
+        if (!isNaN(logDate.getTime())) {
+          const diffTime = now.getTime() - logDate.getTime();
+          daysSince = diffTime > 0 ? Math.floor(diffTime / (1000 * 60 * 60 * 24)) : 0;
+        }
+      }
+
+      return { vehicle, latestLog, daysSince };
+    }).filter(item => item.daysSince > 10);
+  }, [vehicles, logsByVehicleId]);
 
   // Apply filters
-  const filteredOverdue = overdueVehicles.filter(({ vehicle }) => {
-    const matchesLocation = locationFilter ? vehicle.branchLocation === locationFilter : true;
-    const matchesCondition = conditionFilter ? vehicle.condition === conditionFilter : true;
-    const matchesType = typeFilter ? vehicle.vehiclesType === typeFilter : true;
-    const matchesSearch = searchQuery ? (
-      String(vehicle.vehicleNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      String(vehicle.vehicleCompanyNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
-    ) : true;
-    return matchesLocation && matchesCondition && matchesType && matchesSearch;
-  });
+  const filteredOverdue = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return overdueVehicles.filter(({ vehicle }) => {
+      if (locationFilter && vehicle.branchLocation !== locationFilter) return false;
+      if (conditionFilter && vehicle.condition !== conditionFilter) return false;
+      if (typeFilter && vehicle.vehiclesType !== typeFilter) return false;
+      if (q) {
+        const matchesPlate = String(vehicle.vehicleNumber || '').toLowerCase().includes(q);
+        const matchesComp = String(vehicle.vehicleCompanyNumber || '').toLowerCase().includes(q);
+        if (!matchesPlate && !matchesComp) return false;
+      }
+      return true;
+    });
+  }, [overdueVehicles, locationFilter, conditionFilter, typeFilter, searchQuery]);
 
   // Sort by daysSince descending (most overdue first)
-  const sortedOverdue = [...filteredOverdue].sort((a, b) => b.daysSince - a.daysSince);
+  const sortedOverdue = useMemo(() => {
+    return [...filteredOverdue].sort((a, b) => b.daysSince - a.daysSince);
+  }, [filteredOverdue]);
 
   const exportToExcel = () => {
     const data = sortedOverdue.map(({ vehicle, latestLog, daysSince }) => ({
@@ -85,9 +136,9 @@ export const OilChangeAlert: React.FC<OilChangeAlertProps> = ({ onVehicleClick }
     XLSX.writeFile(workbook, 'OilChangeAlerts.xlsx');
   };
 
-  const locations = Array.from(new Set(vehicles.map(v => v.branchLocation))).filter(Boolean);
-  const conditions = Array.from(new Set(vehicles.map(v => v.condition))).filter(Boolean);
-  const types = Array.from(new Set(vehicles.map(v => v.vehiclesType))).filter(Boolean);
+  const locations = useMemo(() => Array.from(new Set(vehicles.map(v => v.branchLocation))).filter(Boolean) as string[], [vehicles]);
+  const conditions = useMemo(() => Array.from(new Set(vehicles.map(v => v.condition))).filter(Boolean) as string[], [vehicles]);
+  const types = useMemo(() => Array.from(new Set(vehicles.map(v => v.vehiclesType))).filter(Boolean) as string[], [vehicles]);
 
   return (
     <div className="p-4 md:p-8">

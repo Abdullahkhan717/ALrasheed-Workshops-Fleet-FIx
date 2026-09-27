@@ -48,25 +48,18 @@ export const areSameVehicle = (
   const keyB = normalizeVehicleKey(vehIdB);
   if (keyA && keyB && keyA === keyB) return true;
 
-  const findMatch = (key: string, raw: string) => {
-    return vehicles.find(v => {
-      if (v.id === raw || normalizeVehicleKey(v.id) === key) return true;
-      if (v.vehicleNumber && normalizeVehicleKey(v.vehicleNumber) === key) return true;
-      if (v.vehicleCompanyNumber && normalizeVehicleKey(v.vehicleCompanyNumber) === key) return true;
-      const combined = normalizeVehicleKey(`${v.vehicleCompanyNumber || ''}${v.vehicleNumber || ''}`);
-      if (combined && combined === key) return true;
-      const full = normalizeVehicleKey(`${v.vehiclesType || ''}${v.vehicleCompanyNumber || ''}${v.vehicleNumber || ''}`);
-      if (full && (full === key || key.includes(combined) || combined.includes(key))) return true;
-      return false;
-    });
-  };
+  if (!vehicles || vehicles.length === 0) return false;
 
-  const vA = findMatch(keyA, vehIdA);
-  const vB = findMatch(keyB, vehIdB);
-
-  if (vA && vB && vA.id === vB.id) return true;
-  if (vA && (vA.id === vehIdB || normalizeVehicleKey(vA.id) === keyB || normalizeVehicleKey(vA.vehicleNumber) === keyB)) return true;
-  if (vB && (vB.id === vehIdA || normalizeVehicleKey(vB.id) === keyA || normalizeVehicleKey(vB.vehicleNumber) === keyA)) return true;
+  for (let i = 0; i < vehicles.length; i++) {
+    const v = vehicles[i];
+    const vidKey = normalizeVehicleKey(v.id);
+    const vNumKey = normalizeVehicleKey(v.vehicleNumber);
+    const vCompKey = normalizeVehicleKey(v.vehicleCompanyNumber);
+    
+    const matchesA = (v.id === vehIdA || (vidKey !== '' && vidKey === keyA) || (vNumKey !== '' && vNumKey === keyA) || (vCompKey !== '' && vCompKey === keyA));
+    const matchesB = (v.id === vehIdB || (vidKey !== '' && vidKey === keyB) || (vNumKey !== '' && vNumKey === keyB) || (vCompKey !== '' && vCompKey === keyB));
+    if (matchesA && matchesB) return true;
+  }
 
   return false;
 };
@@ -219,7 +212,7 @@ export const calculateOilSchedule = (
   const dieselFilterData = getNextOdo('dieselFilter', 40000, isDieselFilter);
   const gearOilData = getNextOdo('gearOil', 60000, isGearOil);
   const airFilterData = getNextOdo('airFilter', 60000, isAirFilter);
-  const deffranceOilData = getNextOdo('deffranceOil', 100000, isDeffranceOil);
+  const deffranceOilData = getNextOdo('deffranceOil', 80000, isDeffranceOil);
 
   return [
     {
@@ -287,7 +280,7 @@ export const calculateOilSchedule = (
       nameKey: 'oilLog_deffranceOil',
       defaultName: 'Differential Oil',
       nameAr: 'زيت الدفرنش',
-      intervalKm: 100000,
+      intervalKm: 80000,
       currentOdo,
       nextOdo: deffranceOilData.nextOdo,
       wasChanged: deffranceOilData.wasChanged,
