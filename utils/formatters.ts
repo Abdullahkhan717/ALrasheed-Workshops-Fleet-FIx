@@ -1,29 +1,43 @@
 console.log('Formatters v3 loaded');
 
-export const parseDate = (dateStr: any) => {
+export const parseDate = (dateStr: any): Date => {
   if (!dateStr) return new Date(NaN);
   
   if (dateStr instanceof Date) return dateStr;
   
-  const str = String(dateStr);
+  const rawStr = String(dateStr).trim();
+  if (!rawStr) return new Date(NaN);
   
   try {
-    // Try parsing as ISO or YYYY-MM-DD
-    // Check for YYYY-MM-DD format specifically to avoid UTC shift
-    const ymdMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    // 1. Full ISO string with 'T' (e.g., "2026-09-21T21:00:00.000Z")
+    if (rawStr.includes('T')) {
+      const isoDate = new Date(rawStr);
+      if (!isNaN(isoDate.getTime())) return isoDate;
+    }
+
+    // Extract date portion if there is a space or time (e.g., "22-09-2026 14:30:00")
+    const datePart = rawStr.split(/[ T]/)[0].trim();
+
+    // 2. YYYY-MM-DD or YYYY/MM/DD
+    const ymdMatch = datePart.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
     if (ymdMatch) {
-      const year = parseInt(ymdMatch[1]);
-      const month = parseInt(ymdMatch[2]) - 1;
-      const day = parseInt(ymdMatch[3]);
+      const year = parseInt(ymdMatch[1], 10);
+      const month = parseInt(ymdMatch[2], 10) - 1;
+      const day = parseInt(ymdMatch[3], 10);
       return new Date(year, month, day, 0, 0, 0, 0); // Local midnight
     }
 
-    // Try parsing MM-DD-YYYY or DD-MM-YYYY specifically
-    const dmyMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+    // 3. DD-MM-YYYY, MM-DD-YYYY, DD-MM-YY, or MM-DD-YY (supports 2-digit & 4-digit years)
+    const dmyMatch = datePart.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})$/);
     if (dmyMatch) {
-      const p1 = parseInt(dmyMatch[1]);
-      const p2 = parseInt(dmyMatch[2]);
-      const year = parseInt(dmyMatch[3]);
+      const p1 = parseInt(dmyMatch[1], 10);
+      const p2 = parseInt(dmyMatch[2], 10);
+      let year = parseInt(dmyMatch[3], 10);
+      
+      // Convert 2-digit year to 4-digit (e.g., 26 -> 2026)
+      if (year < 100) {
+        year = year < 70 ? 2000 + year : 1900 + year;
+      }
       
       // If p1 > 12, it must be DD-MM-YYYY
       if (p1 > 12) {
@@ -33,15 +47,15 @@ export const parseDate = (dateStr: any) => {
       if (p2 > 12) {
         return new Date(year, p1 - 1, p2, 0, 0, 0, 0);
       }
-      // Ambiguous, default to MM-DD-YYYY (as requested for sheet format)
+      // Ambiguous: default to MM-DD-YYYY (standard for sheet date format M/D/YYYY)
       return new Date(year, p1 - 1, p2, 0, 0, 0, 0);
     }
-    
-    // Try parsing as full ISO
-    let date = new Date(str);
-    if (!isNaN(date.getTime()) && str.includes('T')) return date;
 
-    return date;
+    // 4. Fallback to standard new Date()
+    const fallbackDate = new Date(rawStr);
+    if (!isNaN(fallbackDate.getTime())) return fallbackDate;
+
+    return new Date(NaN);
   } catch (error) {
     console.error('Error parsing date:', dateStr, error);
     return new Date(NaN);

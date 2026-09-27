@@ -5,6 +5,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { formatVehicleInfo } from '../utils/formatters';
 import { TruckIcon, CalendarIcon, MapPinIcon, UserIcon, DownloadIcon, SearchIcon } from './Icons';
 import { formatDate, parseDate } from '../utils/formatters';
+import { areSameVehicle, parseOdometer } from '../utils/oilSchedule';
 
 interface OilChangeAlertProps {
   onVehicleClick?: (vehicleId: string) => void;
@@ -20,22 +21,30 @@ export const OilChangeAlert: React.FC<OilChangeAlertProps> = ({ onVehicleClick }
   const [searchQuery, setSearchQuery] = useState('');
 
   const now = new Date();
-  const tenDaysAgo = new Date();
-  tenDaysAgo.setDate(now.getDate() - 10);
 
-  // For each vehicle, find its latest oil log
+  // For each vehicle, find its latest oil log using robust matching and safe sorting
   const overdueVehicles = vehicles.map(vehicle => {
-    const vehicleLogs = oilLogs.filter(log => log.vehicleId === vehicle.id);
-    const latestLog = vehicleLogs.length > 0 
-      ? [...vehicleLogs].sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime())[0]
-      : null;
+    const vehicleLogs = oilLogs.filter(log => areSameVehicle(log.vehicleId, vehicle.id, vehicles));
+    
+    // Sort logs: newest date first, then highest mileage first, safe from NaN
+    const sortedLogs = [...vehicleLogs].sort((a, b) => {
+      const timeA = parseDate(a.date).getTime() || 0;
+      const timeB = parseDate(b.date).getTime() || 0;
+      if (timeA !== timeB) return timeB - timeA;
+      const odoA = parseOdometer(a.mileage);
+      const odoB = parseOdometer(b.mileage);
+      if (odoA !== odoB) return odoB - odoA;
+      return 0;
+    });
+
+    const latestLog = sortedLogs.length > 0 ? sortedLogs[0] : null;
     
     let daysSince = Infinity;
     if (latestLog) {
       const logDate = parseDate(latestLog.date);
       if (!isNaN(logDate.getTime())) {
-        const diffTime = Math.abs(now.getTime() - logDate.getTime());
-        daysSince = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffTime = now.getTime() - logDate.getTime();
+        daysSince = diffTime > 0 ? Math.floor(diffTime / (1000 * 60 * 60 * 24)) : 0;
       }
     }
 
@@ -59,13 +68,15 @@ export const OilChangeAlert: React.FC<OilChangeAlertProps> = ({ onVehicleClick }
 
   const exportToExcel = () => {
     const data = sortedOverdue.map(({ vehicle, latestLog, daysSince }) => ({
-      Vehicle: vehicle.vehicleCompanyNumber || vehicle.vehicleNumber,
-      DaysOverdue: daysSince === Infinity ? 'No History' : daysSince,
-      LastOilChangeDate: latestLog ? formatDate(latestLog.date) : 'N/A',
-      Location: vehicle.branchLocation,
-      Type: vehicle.vehiclesType,
-      Mileage: latestLog ? latestLog.mileage : 'N/A',
-      Driver: latestLog ? latestLog.driverName : 'N/A'
+      Vehicle: vehicle.vehicleCompanyNumber 
+        ? `${vehicle.vehicleCompanyNumber} - ${vehicle.vehicleNumber || ''}` 
+        : vehicle.vehicleNumber,
+      'Vehicle Type': t(vehicle.vehiclesType),
+      'Days Overdue': daysSince === Infinity ? (t('noHistory') || 'No History') : daysSince,
+      'Last Oil Change Date': latestLog ? formatDate(latestLog.date) : 'N/A',
+      'Mileage (KM)': latestLog ? latestLog.mileage : 'N/A',
+      'Driver Name': latestLog ? latestLog.driverName : 'N/A',
+      'Location': vehicle.branchLocation || latestLog?.location || 'N/A'
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(data);
@@ -136,7 +147,7 @@ export const OilChangeAlert: React.FC<OilChangeAlertProps> = ({ onVehicleClick }
                     <div className="flex items-center">
                       <TruckIcon className="h-6 w-6 mr-2" />
                       <span className="font-bold text-lg">
-                        {vehicle.vehicleCompanyNumber || vehicle.vehicleNumber}
+                        {vehicle.vehicleCompanyNumber ? `${vehicle.vehicleCompanyNumber} - ${vehicle.vehicleNumber || ''}` : vehicle.vehicleNumber}
                       </span>
                     </div>
                     <div className="flex flex-col items-end">

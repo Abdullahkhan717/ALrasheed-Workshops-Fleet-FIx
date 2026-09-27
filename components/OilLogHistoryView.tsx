@@ -37,7 +37,12 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
       }
     
     return true;
-  }).sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime());
+  }).sort((a, b) => {
+    const timeA = parseDate(a.date).getTime() || 0;
+    const timeB = parseDate(b.date).getTime() || 0;
+    if (timeA !== timeB) return timeB - timeA;
+    return parseOdometer(b.mileage) - parseOdometer(a.mileage);
+  });
 
   // Deduplicate logs by ID
   const uniqueFilteredLogs = Array.from(new Map(filteredLogs.map(log => [log.id, log])).values());
@@ -66,7 +71,7 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
         'Next Fuel Filter (+40k KM)': dieselFilterItem ? dieselFilterItem.nextOdo : '',
         'Next Gear Oil (+60k KM)': gearOilItem ? gearOilItem.nextOdo : '',
         'Next Air Filter (+60k KM)': airFilterItem ? airFilterItem.nextOdo : '',
-        'Next Diff Oil (+100k KM)': deffranceItem ? deffranceItem.nextOdo : '',
+        'Next Diff Oil (+80k KM)': deffranceItem ? deffranceItem.nextOdo : '',
         [t('remarks')]: log.remarks || ''
       };
     });

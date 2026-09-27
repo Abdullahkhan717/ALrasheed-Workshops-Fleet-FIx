@@ -156,7 +156,12 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
           {oilLogs.filter(o => areSameVehicle(o.vehicleId, vehicle.id, [vehicle])).length > 0 ? (
             oilLogs
               .filter(o => areSameVehicle(o.vehicleId, vehicle.id, [vehicle]))
-              .sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime())
+              .sort((a, b) => {
+                const timeA = parseDate(a.date).getTime() || 0;
+                const timeB = parseDate(b.date).getTime() || 0;
+                if (timeA !== timeB) return timeB - timeA;
+                return parseOdometer(b.mileage) - parseOdometer(a.mileage);
+              })
               .map(log => {
                 const schedule = calculateOilSchedule(log.mileage, log.oilTypes, log.filters, vehicle.id, oilLogs, [vehicle], log.id, log.date);
                 const currentOdo = parseOdometer(log.mileage);
