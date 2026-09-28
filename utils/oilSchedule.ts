@@ -119,7 +119,8 @@ export const calculateOilSchedule = (
   allLogs: OilLog[] = [],
   vehicles: Vehicle[] = [],
   currentLogId?: string,
-  currentDate?: string
+  currentDate?: string,
+  preFilteredVehicleLogs?: OilLog[]
 ): OilScheduleItem[] => {
   const currentOdo = parseOdometer(mileageStr);
 
@@ -132,8 +133,15 @@ export const calculateOilSchedule = (
 
   // Filter and sort vehicle historical logs
   let vehicleLogs: OilLog[] = [];
-  if (vehicleId && Array.isArray(allLogs) && allLogs.length > 0) {
-    vehicleLogs = allLogs.filter(log => areSameVehicle(log.vehicleId, vehicleId, vehicles));
+  if (preFilteredVehicleLogs && Array.isArray(preFilteredVehicleLogs)) {
+    vehicleLogs = preFilteredVehicleLogs;
+  } else if (vehicleId && Array.isArray(allLogs) && allLogs.length > 0) {
+    if (allLogs.length <= 50) {
+      // Already filtered for this vehicle
+      vehicleLogs = allLogs;
+    } else {
+      vehicleLogs = allLogs.filter(log => areSameVehicle(log.vehicleId, vehicleId, vehicles));
+    }
   }
 
   const sortedLogs = [...vehicleLogs].sort((a, b) => {
