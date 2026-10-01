@@ -421,6 +421,29 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return log;
       }));
     }
+    if (sheetName === 'TyreLogs' || sheetName === 'tyreLogs') {
+      setTyreLogs(prev => prev.map(log => {
+        if (log.id === payload.id) {
+          let tyreDetails = payload.tyreDetails;
+          if (typeof tyreDetails === 'string') {
+            try { tyreDetails = JSON.parse(tyreDetails); } catch (e) { tyreDetails = log.tyreDetails; }
+          }
+          return {
+            ...log,
+            vehicleId: String(payload.vehicleId || payload['Vehicle ID'] || log.vehicleId),
+            vehicleNumber: String(payload.vehicleNumber || payload['Vehicle Number'] || log.vehicleNumber),
+            driverName: String(payload.driverName || payload['Driver Name'] || log.driverName),
+            mileage: String(payload.mileage || payload['Mileage'] || log.mileage),
+            workshopLocation: String(payload.workshopLocation || payload['Workshop Location'] || log.workshopLocation),
+            mechanicName: String(payload.mechanicName || payload['Mechanic Name'] || log.mechanicName),
+            date: payload.date || payload['Date'] || log.date,
+            time: payload.time || payload['Time'] || log.time,
+            tyreDetails: Array.isArray(tyreDetails) ? tyreDetails : log.tyreDetails
+          };
+        }
+        return log;
+      }));
+    }
     const result = await updateRecord(finalPayload, sheetName);
     await fetchData(true);
     return result;

@@ -418,7 +418,6 @@ const AppContent: React.FC = () => {
                     vehicles={vehicles} 
                     selectedVehicleId={selectedHistoryVehicleId} 
                     initialSearchQuery={tyreSearchHistoryQuery} 
-                    onEditTyre={handleEditTyre}
                     onTransferTyre={handleTransferTyre}
                   />
                 )}
@@ -471,7 +470,6 @@ const AppContent: React.FC = () => {
             tyreLogs={tyreLogs} 
             vehicles={vehicles} 
             initialSearchQuery={tyreSearchHistoryQuery} 
-            onEditTyre={handleEditTyre}
             onTransferTyre={handleTransferTyre}
           />
         );

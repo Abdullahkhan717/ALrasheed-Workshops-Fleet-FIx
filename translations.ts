@@ -562,6 +562,12 @@ export const translations: { [lang: string]: { [key: string]: string } } = {
     enterNewBrand: 'Enter New Brand Name',
     selectAll: 'Select All',
     deselectAll: 'Deselect All',
+    editTyreLog: 'Edit Tyre Entry',
+    updateTyreLog: 'Update Tyre Entry',
+    tyreLog_updated: 'Tyre entry updated successfully.',
+    addTyreItem: 'Add Another Tyre',
+    removeTyreItem: 'Remove Tyre',
+    tyreDetailsList: 'Tyre Details',
   },
   ar: {
     // General
@@ -1124,5 +1130,11 @@ export const translations: { [lang: string]: { [key: string]: string } } = {
     enterNewBrand: 'أدخل اسم الماركة الجديدة',
     selectAll: 'تحديد الكل',
     deselectAll: 'إلغاء تحديد الكل',
+    editTyreLog: 'تعديل سجل الإطارات',
+    updateTyreLog: 'تحديث سجل الإطارات',
+    tyreLog_updated: 'تم تحديث سجل الإطارات بنجاح.',
+    addTyreItem: 'إضافة إطار آخر',
+    removeTyreItem: 'حذف الإطار',
+    tyreDetailsList: 'تفاصيل الإطارات',
   }
 };

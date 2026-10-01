@@ -3,6 +3,7 @@ import { XMarkIcon, ShareIcon, PencilIcon, ArrowsRightLeftIcon, PrinterIcon, Che
 import { useTranslation } from '../hooks/useTranslation';
 import type { TyreLog, Vehicle } from '../types';
 import { formatVehicleInfo, formatDate, formatTime } from '../utils/formatters';
+import { EditTyreLogModal } from './EditTyreLogModal';
 
 interface TyreDetailModalProps {
   serialNumber: string;
@@ -23,6 +24,7 @@ export const TyreDetailModal: React.FC<TyreDetailModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const [selectedLogIds, setSelectedLogIds] = useState<string[]>([]);
+  const [editingLog, setEditingLog] = useState<TyreLog | null>(null);
 
   // Find all logs related to this tyre serial number
   const history = tyreLogs
@@ -178,7 +180,22 @@ export const TyreDetailModal: React.FC<TyreDetailModalProps> = ({
                     >
                       <div className="flex justify-between items-start mb-2">
                         <p className="font-bold text-gray-900">{getVehicleInfo(log.vehicleId)}</p>
-                        <span className="text-[10px] bg-white px-2 py-1 rounded shadow-sm border border-gray-100 text-gray-500 font-medium">{formatDate(log.date)}</span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingLog(log);
+                            }}
+                            className="p-1 hover:bg-gray-100 rounded text-amber-600 hover:text-amber-700 transition"
+                            title={t('editTyreLog') || t('edit')}
+                          >
+                            <PencilIcon className="h-3.5 w-3.5" />
+                          </button>
+                          <span className="text-[10px] bg-white px-2 py-1 rounded shadow-sm border border-gray-100 text-gray-500 font-medium">
+                            {formatDate(log.date)}
+                          </span>
+                        </div>
                       </div>
                         <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
                           <div><span className="text-gray-400 uppercase text-[9px] font-bold block">{t('workshop')}</span> {log.workshopLocation}</div>
@@ -301,15 +318,20 @@ export const TyreDetailModal: React.FC<TyreDetailModalProps> = ({
             {t('print')} ({selectedLogs.length})
           </button>
           
-          {onEdit && (
-            <button 
-              onClick={() => onEdit(latestLog)}
-              className="flex items-center justify-center gap-2 bg-white text-gray-700 border border-gray-200 px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-colors font-bold text-sm"
-            >
-              <PencilIcon className="h-5 w-5" />
-              {t('editTyre')}
-            </button>
-          )}
+          <button 
+            type="button"
+            onClick={() => {
+              if (onEdit) {
+                onEdit(latestLog);
+              } else {
+                setEditingLog(latestLog);
+              }
+            }}
+            className="flex items-center justify-center gap-2 bg-amber-500 text-white hover:bg-amber-600 px-4 py-2.5 rounded-xl transition-all shadow-md active:scale-95 font-bold text-sm"
+          >
+            <PencilIcon className="h-5 w-5" />
+            {t('editTyre')}
+          </button>
 
           {onTransfer && (
             <button 
@@ -322,6 +344,14 @@ export const TyreDetailModal: React.FC<TyreDetailModalProps> = ({
           )}
         </div>
       </div>
+
+      {editingLog && (
+        <EditTyreLogModal
+          log={editingLog}
+          onClose={() => setEditingLog(null)}
+          onSuccess={() => setEditingLog(null)}
+        />
+      )}
     </div>
   );
 };

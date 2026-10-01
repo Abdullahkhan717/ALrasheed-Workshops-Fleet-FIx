@@ -6,6 +6,7 @@ import { formatVehicleInfo, formatDate, formatTime, parseDate } from '../utils/f
 import * as XLSX from 'xlsx';
 import { SearchableVehicleSelect } from './SearchableVehicleSelect';
 import { TyreDetailModal } from './TyreDetailModal';
+import { EditTyreLogModal } from './EditTyreLogModal';
 
 interface TyreLogHistoryViewProps {
   tyreLogs: TyreLog[];
@@ -30,6 +31,8 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
   const [tyreTypeFilter, setTyreTypeFilter] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
   const [selectedVehicleIdFilter, setSelectedVehicleIdFilter] = useState('');
+  const [editingLog, setEditingLog] = useState<TyreLog | null>(null);
+  const [editingTyreIndex, setEditingTyreIndex] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     if (initialSearchQuery) {
@@ -170,9 +173,24 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
                     {formatTime(log.time)}
                   </p>
                 </div>
-                <div className="text-end">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('mileage')}</p>
-                  <p className="text-sm font-medium text-gray-800">{log.mileage}</p>
+                <div className="flex items-center gap-3">
+                  <div className="text-end">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('mileage')}</p>
+                    <p className="text-sm font-medium text-gray-800">{log.mileage}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingLog(log);
+                      setEditingTyreIndex(undefined);
+                    }}
+                    className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xs transition active:scale-95"
+                    title={t('editTyreLog') || t('edit')}
+                  >
+                    <PencilIcon className="h-3.5 w-3.5" />
+                    <span>{t('edit')}</span>
+                  </button>
                 </div>
               </div>
 
@@ -232,11 +250,13 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
                           </div>
                           <div className="flex gap-2">
                             <button
+                              type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                onEditTyre?.(log, idx);
+                                setEditingLog(log);
+                                setEditingTyreIndex(idx);
                               }}
-                              className="p-1.5 bg-white border border-gray-200 rounded-md text-blue-600 hover:bg-blue-50 transition-colors"
+                              className="p-1.5 bg-white border border-gray-200 rounded-md text-amber-600 hover:bg-amber-50 hover:border-amber-300 transition-colors shadow-2xs"
                               title={t('editTyre')}
                             >
                               <PencilIcon className="h-3.5 w-3.5" />
@@ -276,6 +296,25 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
           tyreLogs={tyreLogs}
           vehicles={vehicles}
           onClose={() => setSelectedSerial(null)}
+          onEdit={(targetLog) => {
+            setEditingLog(targetLog);
+            setEditingTyreIndex(undefined);
+          }}
+        />
+      )}
+
+      {editingLog && (
+        <EditTyreLogModal
+          log={editingLog}
+          initialTyreIndex={editingTyreIndex}
+          onClose={() => {
+            setEditingLog(null);
+            setEditingTyreIndex(undefined);
+          }}
+          onSuccess={() => {
+            setEditingLog(null);
+            setEditingTyreIndex(undefined);
+          }}
         />
       )}
     </div>
