@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { Vehicle } from '../types';
 import { NewVehicleForm } from './NewVehicleForm';
 import { PlusIcon, PencilIcon, TrashIcon, WhatsappIcon, ArrowsRightLeftIcon, EyeIcon, TruckIcon, WrenchScrewdriverIcon, CheckIcon } from './Icons';
@@ -33,6 +33,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [searchQuery, setSearchQuery] = useState(String(initialSearchQuery || ''));
   const [locationFilter, setLocationFilter] = useState(initialLocationFilter);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'Available' | 'In-Use' | 'Maintenance'>('all');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -113,36 +114,92 @@ export const VehicleList: React.FC<VehicleListProps> = ({
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
   };
 
-  const filteredVehicles = vehicles.filter(v => {
-    // Location filter
-    if (locationFilter && v.branchLocation !== locationFilter) return false;
+  // Helper to determine status of any vehicle ('Available' | 'In-Use' | 'Maintenance')
+  const getVehicleStatus = (vehicle: Vehicle): 'Available' | 'In-Use' | 'Maintenance' => {
+    // 1. Check if vehicle is under active/pending repair in repairRequests
+    const hasActiveRepair = repairRequests.some(r => {
+      const rStatus = String(r.status || '').toLowerCase();
+      if (rStatus !== 'pending' && rStatus !== 'in progress' && rStatus !== 'open') return false;
+      const vid = String(vehicle.id || '');
+      const cNum = String(vehicle.vehicleCompanyNumber || '');
+      const vNum = String(vehicle.vehicleNumber || '');
+      const reqVid = String(r.vehicleId || '');
+      return reqVid === vid || (cNum && reqVid === cNum) || (vNum && reqVid === vNum);
+    });
+    if (hasActiveRepair) return 'Maintenance';
 
-    const query = String(searchQuery || '').toLowerCase();
-    if (!query) return true;
-    
-    const vNum = String(v.vehicleNumber || '').toLowerCase();
-    const cNum = String(v.vehicleCompanyNumber || '').toLowerCase();
-    const serial = String(v.serialNumber || '').toLowerCase();
-    const arabicName = String(v.arabicName || '').toLowerCase();
-    const type = t(v.vehiclesType).toLowerCase();
-    
-    // Check if any vehicle has an EXACT match for vehicle number, company number or serial
-    const hasExactMatch = vehicles.some(e => 
-        String(e.vehicleNumber || '').toLowerCase() === query || 
-        String(e.vehicleCompanyNumber || '').toLowerCase() === query ||
-        String(e.serialNumber || '').toLowerCase() === query
-    );
-    
-    if (hasExactMatch) {
-        return vNum === query || cNum === query || serial === query;
+    const raw = String(vehicle.condition || '').trim().toLowerCase();
+    if (raw === 'maintenance' || raw === 'damage' || raw === 'brekdown' || raw === 'breakdown') {
+      return 'Maintenance';
+    }
+    if (raw === 'available' || raw === 'ready for work' || raw === 'ready') {
+      return 'Available';
+    }
+    if (raw === 'in-use' || raw === 'in use' || raw === 'working') {
+      return 'In-Use';
     }
 
-    return vNum.includes(query) ||
-           cNum.includes(query) ||
-           type.includes(query) ||
-           serial.includes(query) ||
-           arabicName.includes(query);
-  });
+    return 'Available';
+  };
+
+  // Status counts respecting active location filter
+  const statusCounts = useMemo(() => {
+    const counts = {
+      all: 0,
+      Available: 0,
+      'In-Use': 0,
+      Maintenance: 0
+    };
+    const baseList = locationFilter 
+      ? vehicles.filter(v => v.branchLocation === locationFilter)
+      : vehicles;
+
+    counts.all = baseList.length;
+    baseList.forEach(v => {
+      const s = getVehicleStatus(v);
+      counts[s] = (counts[s] || 0) + 1;
+    });
+    return counts;
+  }, [vehicles, locationFilter, repairRequests]);
+
+  const filteredVehicles = useMemo(() => {
+    return vehicles.filter(v => {
+      // Location filter
+      if (locationFilter && v.branchLocation !== locationFilter) return false;
+
+      // Status filter ('Available' | 'In-Use' | 'Maintenance')
+      if (statusFilter !== 'all') {
+        const vStatus = getVehicleStatus(v);
+        if (vStatus !== statusFilter) return false;
+      }
+
+      const query = String(searchQuery || '').toLowerCase().trim();
+      if (!query) return true;
+      
+      const vNum = String(v.vehicleNumber || '').toLowerCase();
+      const cNum = String(v.vehicleCompanyNumber || '').toLowerCase();
+      const serial = String(v.serialNumber || '').toLowerCase();
+      const arabicName = String(v.arabicName || '').toLowerCase();
+      const type = t(v.vehiclesType).toLowerCase();
+      
+      // Check if any vehicle has an EXACT match for vehicle number, company number or serial
+      const hasExactMatch = vehicles.some(e => 
+          String(e.vehicleNumber || '').toLowerCase() === query || 
+          String(e.vehicleCompanyNumber || '').toLowerCase() === query ||
+          String(e.serialNumber || '').toLowerCase() === query
+      );
+      
+      if (hasExactMatch) {
+          return vNum === query || cNum === query || serial === query;
+      }
+
+      return vNum.includes(query) ||
+             cNum.includes(query) ||
+             type.includes(query) ||
+             serial.includes(query) ||
+             arabicName.includes(query);
+    });
+  }, [vehicles, locationFilter, statusFilter, searchQuery, repairRequests, t]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredVehicles.length / itemsPerPage);
@@ -158,7 +215,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, locationFilter]);
+  }, [searchQuery, locationFilter, statusFilter]);
 
   return (
     <div className="p-4 md:p-8">
@@ -239,6 +296,103 @@ export const VehicleList: React.FC<VehicleListProps> = ({
         </div>
       </div>
 
+      {/* Status Filter Bar */}
+      <div className="mb-6 bg-white p-3 rounded-xl shadow-xs border border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 text-sm font-medium scrollbar-thin">
+            <span className="text-xs font-bold text-gray-500 uppercase px-1 hidden md:inline">
+              {t('filterByStatus') || 'Filter by Status'}:
+            </span>
+            
+            {/* All */}
+            <button
+              type="button"
+              onClick={() => setStatusFilter('all')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-bold text-xs transition whitespace-nowrap ${
+                statusFilter === 'all'
+                  ? 'bg-gray-800 text-white shadow-sm ring-2 ring-gray-400'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <span>{t('status_all') || 'All'}</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                statusFilter === 'all' ? 'bg-gray-700 text-white font-bold' : 'bg-gray-200 text-gray-700 font-semibold'
+              }`}>
+                {statusCounts.all}
+              </span>
+            </button>
+
+            {/* Available */}
+            <button
+              type="button"
+              onClick={() => setStatusFilter('Available')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-bold text-xs transition whitespace-nowrap ${
+                statusFilter === 'Available'
+                  ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-300'
+                  : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${statusFilter === 'Available' ? 'bg-white' : 'bg-emerald-500'}`} />
+              <span>{t('status_available') || 'Available'}</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                statusFilter === 'Available' ? 'bg-emerald-700 text-white font-bold' : 'bg-emerald-200/90 text-emerald-900 font-bold'
+              }`}>
+                {statusCounts.Available}
+              </span>
+            </button>
+
+            {/* In-Use */}
+            <button
+              type="button"
+              onClick={() => setStatusFilter('In-Use')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-bold text-xs transition whitespace-nowrap ${
+                statusFilter === 'In-Use'
+                  ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-300'
+                  : 'bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${statusFilter === 'In-Use' ? 'bg-white' : 'bg-blue-500'}`} />
+              <span>{t('status_inUse') || 'In-Use'}</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                statusFilter === 'In-Use' ? 'bg-blue-700 text-white font-bold' : 'bg-blue-200/90 text-blue-900 font-bold'
+              }`}>
+                {statusCounts['In-Use']}
+              </span>
+            </button>
+
+            {/* Maintenance */}
+            <button
+              type="button"
+              onClick={() => setStatusFilter('Maintenance')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-bold text-xs transition whitespace-nowrap ${
+                statusFilter === 'Maintenance'
+                  ? 'bg-amber-600 text-white shadow-sm ring-2 ring-amber-300'
+                  : 'bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${statusFilter === 'Maintenance' ? 'bg-white' : 'bg-amber-500'}`} />
+              <span>{t('status_maintenance') || 'Maintenance'}</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                statusFilter === 'Maintenance' ? 'bg-amber-700 text-white font-bold' : 'bg-amber-200/90 text-amber-900 font-bold'
+              }`}>
+                {statusCounts.Maintenance}
+              </span>
+            </button>
+          </div>
+
+          {/* Clear active filter button */}
+          {statusFilter !== 'all' && (
+            <button
+              type="button"
+              onClick={() => setStatusFilter('all')}
+              className="text-xs text-gray-500 hover:text-gray-800 underline font-medium self-end sm:self-center"
+            >
+              {t('resetFilters') || 'Clear Status Filter'}
+            </button>
+          )}
+        </div>
+      </div>
+
       {selectedVehicleId && vehicles.find(v => v.id === selectedVehicleId) && (
         <div className="mb-8">
           <VehicleDetailsView
@@ -266,12 +420,15 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                 <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">{t('companyNumber')}</th>
                 <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">{t('model')}</th>
                 <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">{t('location')}</th>
+                <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">{t('vehicleStatus') || 'Status'}</th>
                 <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">{t('actions')}</th>
                 </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
                 {currentVehicles.length > 0 ? (
-                    currentVehicles.map((vehicle, index) => (
+                    currentVehicles.map((vehicle, index) => {
+                    const status = getVehicleStatus(vehicle);
+                    return (
                     <tr key={`${vehicle.id}-${index}`} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{t(vehicle.vehiclesType)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -280,6 +437,22 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.vehicleCompanyNumber}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.modelNumber}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.branchLocation}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${
+                        status === 'Available' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                        status === 'In-Use' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                        'bg-amber-50 text-amber-800 border-amber-200'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full me-1.5 ${
+                          status === 'Available' ? 'bg-emerald-500' :
+                          status === 'In-Use' ? 'bg-blue-500' :
+                          'bg-amber-500'
+                        }`} />
+                        {status === 'Available' ? t('status_available') :
+                         status === 'In-Use' ? t('status_inUse') :
+                         t('status_maintenance')}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
                             <button onClick={() => setSelectedVehicleId(vehicle.id)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-100 rounded-full" title={t('details')}>
@@ -309,10 +482,11 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                         </div>
                     </td>
                     </tr>
-                ))
+                    );
+                  })
                 ) : (
                     <tr>
-                        <td colSpan={8} className="text-center py-10 text-gray-500">{t('noVehicleFound')}</td>
+                        <td colSpan={7} className="text-center py-10 text-gray-500">{t('noVehicleFound')}</td>
                     </tr>
                 )}
             </tbody>
@@ -323,12 +497,30 @@ export const VehicleList: React.FC<VehicleListProps> = ({
       {/* Mobile Card View */}
       <div className="md:hidden space-y-4">
         {currentVehicles.length > 0 ? (
-            currentVehicles.map((vehicle, index) => (
+            currentVehicles.map((vehicle, index) => {
+              const status = getVehicleStatus(vehicle);
+              return (
                 <div key={`${vehicle.id}-${index}`} className="bg-white rounded-xl shadow-md p-4 space-y-3">
                     <div className="flex justify-between items-start">
                         <div>
-                            <span className="text-xs font-semibold text-green-600 uppercase tracking-wider">{t(vehicle.vehiclesType)}</span>
-                            <h3 className="text-lg font-bold text-gray-900">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-green-600 uppercase tracking-wider">{t(vehicle.vehiclesType)}</span>
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                  status === 'Available' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                  status === 'In-Use' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                  'bg-amber-50 text-amber-800 border-amber-200'
+                                }`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full me-1 ${
+                                    status === 'Available' ? 'bg-emerald-500' :
+                                    status === 'In-Use' ? 'bg-blue-500' :
+                                    'bg-amber-500'
+                                  }`} />
+                                  {status === 'Available' ? t('status_available') :
+                                   status === 'In-Use' ? t('status_inUse') :
+                                   t('status_maintenance')}
+                                </span>
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900 mt-0.5">
                                 {formatVehicleInfo(vehicle, t)}
                             </h3>
                         </div>
@@ -386,7 +578,8 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                         </div>
                     )}
                 </div>
-            ))
+              );
+            })
         ) : (
             <div className="text-center py-10 bg-white rounded-xl shadow-md text-gray-500">
                 {t('noVehicleFound')}

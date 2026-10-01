@@ -48,6 +48,31 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
       });
   }, [oilLogs, vehicle]);
 
+  const vehicleStatus = useMemo((): 'Available' | 'In-Use' | 'Maintenance' => {
+    const hasActiveRepair = repairRequests.some(r => {
+      const rStatus = String(r.status || '').toLowerCase();
+      if (rStatus !== 'pending' && rStatus !== 'in progress' && rStatus !== 'open') return false;
+      const vid = String(vehicle.id || '');
+      const cNum = String(vehicle.vehicleCompanyNumber || '');
+      const vNum = String(vehicle.vehicleNumber || '');
+      const reqVid = String(r.vehicleId || '');
+      return reqVid === vid || (cNum && reqVid === cNum) || (vNum && reqVid === vNum);
+    });
+    if (hasActiveRepair) return 'Maintenance';
+
+    const raw = String(vehicle.condition || '').trim().toLowerCase();
+    if (raw === 'maintenance' || raw === 'damage' || raw === 'brekdown' || raw === 'breakdown') {
+      return 'Maintenance';
+    }
+    if (raw === 'available' || raw === 'ready for work' || raw === 'ready') {
+      return 'Available';
+    }
+    if (raw === 'in-use' || raw === 'in use' || raw === 'working') {
+      return 'In-Use';
+    }
+    return 'Available';
+  }, [vehicle, repairRequests]);
+
   const isHomeBranch = (branchLocation: string) => {
     if (!currentUser) return false;
     if (currentUser.role === 'admin') return true;
@@ -59,7 +84,23 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
     <div className="border-2 border-green-100 rounded-xl p-6 bg-green-50">
       <div className="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
         <div>
-          <h2 className="text-xl font-bold text-green-600 mb-1">{t('step1_selectedVehicle')}</h2>
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="text-xl font-bold text-green-600">{t('step1_selectedVehicle')}</h2>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+              vehicleStatus === 'Available' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+              vehicleStatus === 'In-Use' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+              'bg-amber-50 text-amber-800 border-amber-200'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full me-1.5 ${
+                vehicleStatus === 'Available' ? 'bg-emerald-500' :
+                vehicleStatus === 'In-Use' ? 'bg-blue-500' :
+                'bg-amber-500'
+              }`} />
+              {vehicleStatus === 'Available' ? t('status_available') :
+               vehicleStatus === 'In-Use' ? t('status_inUse') :
+               t('status_maintenance')}
+            </span>
+          </div>
           <p className="text-2xl font-black text-green-900 uppercase">
             {formatVehicleInfo(vehicle, t)}
           </p>
@@ -122,6 +163,23 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
           <div className="flex flex-col">
             <span className="text-xs font-bold text-green-400 uppercase tracking-wider">{t('location')}</span>
             <span className="font-bold text-gray-800">{vehicle.branchLocation}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-bold text-green-400 uppercase tracking-wider">{t('vehicleStatus') || 'Status'}</span>
+            <span className={`font-bold inline-flex items-center gap-1.5 text-sm ${
+              vehicleStatus === 'Available' ? 'text-emerald-700' :
+              vehicleStatus === 'In-Use' ? 'text-blue-700' :
+              'text-amber-700'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${
+                vehicleStatus === 'Available' ? 'bg-emerald-500' :
+                vehicleStatus === 'In-Use' ? 'bg-blue-500' :
+                'bg-amber-500'
+              }`} />
+              {vehicleStatus === 'Available' ? t('status_available') :
+               vehicleStatus === 'In-Use' ? t('status_inUse') :
+               t('status_maintenance')}
+            </span>
           </div>
         </div>
       )}

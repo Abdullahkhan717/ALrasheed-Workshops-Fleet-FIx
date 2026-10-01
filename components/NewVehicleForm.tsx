@@ -229,13 +229,16 @@ export const NewVehicleForm: React.FC<NewVehicleFormProps> = ({ onClose, onAddVe
               </select>
             </div>
             <div>
-              <label htmlFor="condition" className="block text-sm font-medium text-gray-700">{t('condition')}</label>
+              <label htmlFor="condition" className="block text-sm font-medium text-gray-700">{t('condition')} / {t('vehicleStatus')}</label>
               <select
                 id="condition"
                 value={condition}
                 onChange={(e) => setCondition(e.target.value as Vehicle['condition'])}
                 className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
               >
+                <option value="Available">{t('status_available')} ({t('readyForWork')})</option>
+                <option value="In-Use">{t('status_inUse')} ({t('working')})</option>
+                <option value="Maintenance">{t('status_maintenance')} ({t('damage')})</option>
                 <option value="Working">{t('working')}</option>
                 <option value="Ready for work">{t('readyForWork')}</option>
                 <option value="Damage">{t('damage')}</option>
