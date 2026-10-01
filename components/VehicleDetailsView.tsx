@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { Vehicle, RepairRequest, OilLog } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAuth } from '../context/AuthContext';
-import { WhatsappIcon, PrinterIcon } from './Icons';
+import { WhatsappIcon, PrinterIcon, PencilSquareIcon } from './Icons';
 import { formatVehicleInfo, formatDate, formatTime, parseDate } from '../utils/formatters';
 import { calculateOilSchedule, parseOdometer, areSameVehicle } from '../utils/oilSchedule';
 import { OilChangeCardModal } from './OilChangeCardModal';
+import { EditOilLogModal } from './EditOilLogModal';
 
 interface VehicleDetailsViewProps {
   vehicle: Vehicle;
@@ -34,6 +35,18 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
   const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'details' | 'repair' | 'oil'>('details');
   const [selectedCardLog, setSelectedCardLog] = useState<OilLog | null>(null);
+  const [editingOilLog, setEditingOilLog] = useState<OilLog | null>(null);
+
+  const vehicleOilLogs = useMemo(() => {
+    return oilLogs
+      .filter(o => areSameVehicle(o.vehicleId, vehicle.id, [vehicle]))
+      .sort((a, b) => {
+        const timeA = parseDate(a.date).getTime() || 0;
+        const timeB = parseDate(b.date).getTime() || 0;
+        if (timeA !== timeB) return timeB - timeA;
+        return parseOdometer(b.mileage) - parseOdometer(a.mileage);
+      });
+  }, [oilLogs, vehicle]);
 
   const isHomeBranch = (branchLocation: string) => {
     if (!currentUser) return false;
@@ -153,25 +166,27 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
 
       {activeTab === 'oil' && (
         <div className="space-y-4 mb-8 max-h-[460px] overflow-y-auto pr-2">
-          {oilLogs.filter(o => areSameVehicle(o.vehicleId, vehicle.id, [vehicle])).length > 0 ? (
-            oilLogs
-              .filter(o => areSameVehicle(o.vehicleId, vehicle.id, [vehicle]))
-              .sort((a, b) => {
-                const timeA = parseDate(a.date).getTime() || 0;
-                const timeB = parseDate(b.date).getTime() || 0;
-                if (timeA !== timeB) return timeB - timeA;
-                return parseOdometer(b.mileage) - parseOdometer(a.mileage);
-              })
-              .map(log => {
-                const schedule = calculateOilSchedule(log.mileage, log.oilTypes, log.filters, vehicle.id, oilLogs, [vehicle], log.id, log.date);
-                const currentOdo = parseOdometer(log.mileage);
-                return (
-                  <div key={log.id} className="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm hover:border-emerald-400 transition">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <span className="text-sm font-bold text-emerald-700">{formatDate(log.date)}</span>
-                        <span className="text-xs text-gray-500 ms-2">{formatTime(log.time)}</span>
-                      </div>
+          {vehicleOilLogs.length > 0 ? (
+            vehicleOilLogs.map(log => {
+              const schedule = calculateOilSchedule(log.mileage, log.oilTypes, log.filters, vehicle.id, vehicleOilLogs, [vehicle], log.id, log.date, vehicleOilLogs);
+              const currentOdo = parseOdometer(log.mileage);
+              return (
+                <div key={log.id} className="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm hover:border-emerald-400 transition">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <span className="text-sm font-bold text-emerald-700">{formatDate(log.date)}</span>
+                      <span className="text-xs text-gray-500 ms-2">{formatTime(log.time)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setEditingOilLog(log)}
+                        className="flex items-center gap-1 text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-2 py-1 rounded-md transition shadow-xs"
+                        title={t('editOilLog') || t('edit')}
+                      >
+                        <PencilSquareIcon className="h-3.5 w-3.5" />
+                        {t('edit')}
+                      </button>
                       <button
                         type="button"
                         onClick={() => setSelectedCardLog(log)}
@@ -181,65 +196,66 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
                         {t('viewOilDetails') || t('print')}
                       </button>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-xs mb-2 bg-gray-50 p-2 rounded-lg">
-                      <p className="text-gray-600"><strong>{t('driver')}:</strong> {log.driverName}</p>
-                      <p className="text-gray-600">
-                        <strong>{t('currentOdometer') || t('mileage')}:</strong>{' '}
-                        <span className="font-mono font-bold text-emerald-700">{currentOdo.toLocaleString()} KM</span>
-                      </p>
-                    </div>
-
-                    <div className="mt-2">
-                      <p className="text-[11px] font-bold text-gray-500 uppercase mb-1">{t('oilTypes')}:</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {log.oilTypes.map((ot, i) => (
-                          <span key={i} className="bg-emerald-100 text-emerald-900 text-xs px-2 py-0.5 rounded font-bold">
-                            {t(`oilLog_${ot}` as any) !== `oilLog_${ot}` ? t(`oilLog_${ot}` as any) : ot}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="mt-2">
-                      <p className="text-[11px] font-bold text-gray-500 uppercase mb-1">{t('filters')}:</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {log.filters.map((f, i) => (
-                          <span key={i} className="bg-blue-100 text-blue-900 text-xs px-2 py-0.5 rounded font-bold">
-                            {t(`oilLog_${f}` as any) !== `oilLog_${f}` ? t(`oilLog_${f}` as any) : f}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Next Due Odometer Quick Schedule */}
-                    <div className="mt-3 pt-2 border-t border-gray-100 bg-emerald-50/50 p-2 rounded-lg">
-                      <p className="text-[10px] font-black uppercase text-emerald-900 mb-1.5 flex justify-between">
-                        <span>{t('nextDueSchedule') || 'Next Due Schedule'}:</span>
-                        <span className="text-emerald-700 font-bold">قراءة العداد القادمة</span>
-                      </p>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px]">
-                        {schedule.map(item => (
-                          <div key={item.id} className="bg-white p-1.5 rounded border border-emerald-200 flex flex-col justify-between">
-                            <span className="text-[10px] text-gray-700 font-medium truncate">
-                              {language === 'ar' ? item.nameAr : item.defaultName}
-                            </span>
-                            <span className="font-mono font-black text-emerald-800 text-xs mt-0.5">
-                              {item.nextOdo.toLocaleString()} <span className="text-[9px] font-sans text-gray-500">KM</span>
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {log.remarks && (
-                      <div className="mt-2 pt-2 border-t border-gray-100">
-                        <p className="text-xs text-gray-700 italic">"{log.remarks}"</p>
-                      </div>
-                    )}
                   </div>
-                );
-              })
+
+                  <div className="grid grid-cols-2 gap-2 text-xs mb-2 bg-gray-50 p-2 rounded-lg">
+                    <p className="text-gray-600"><strong>{t('driver')}:</strong> {log.driverName}</p>
+                    <p className="text-gray-600">
+                      <strong>{t('currentOdometer') || t('mileage')}:</strong>{' '}
+                      <span className="font-mono font-bold text-emerald-700">{currentOdo.toLocaleString()} KM</span>
+                    </p>
+                  </div>
+
+                  <div className="mt-2">
+                    <p className="text-[11px] font-bold text-gray-500 uppercase mb-1">{t('oilTypes')}:</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {log.oilTypes.map((ot, i) => (
+                        <span key={i} className="bg-emerald-100 text-emerald-900 text-xs px-2 py-0.5 rounded font-bold">
+                          {t(`oilLog_${ot}` as any) !== `oilLog_${ot}` ? t(`oilLog_${ot}` as any) : ot}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-2">
+                    <p className="text-[11px] font-bold text-gray-500 uppercase mb-1">{t('filters')}:</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {log.filters.map((f, i) => (
+                        <span key={i} className="bg-blue-100 text-blue-900 text-xs px-2 py-0.5 rounded font-bold">
+                          {t(`oilLog_${f}` as any) !== `oilLog_${f}` ? t(`oilLog_${f}` as any) : f}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Next Due Odometer Quick Schedule */}
+                  <div className="mt-3 pt-2 border-t border-gray-100 bg-emerald-50/50 p-2 rounded-lg">
+                    <p className="text-[10px] font-black uppercase text-emerald-900 mb-1.5 flex justify-between">
+                      <span>{t('nextDueSchedule') || 'Next Due Schedule'}:</span>
+                      <span className="text-emerald-700 font-bold">قراءة العداد القادمة</span>
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px]">
+                      {schedule.map(item => (
+                        <div key={item.id} className="bg-white p-1.5 rounded border border-emerald-200 flex flex-col justify-between">
+                          <span className="text-[10px] text-gray-700 font-medium truncate">
+                            {language === 'ar' ? item.nameAr : item.defaultName}
+                          </span>
+                          <span className="font-mono font-black text-emerald-800 text-xs mt-0.5">
+                            {item.nextOdo.toLocaleString()} <span className="text-[9px] font-sans text-gray-500">KM</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {log.remarks && (
+                    <div className="mt-2 pt-2 border-t border-gray-100">
+                      <p className="text-xs text-gray-700 italic">"{log.remarks}"</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })
           ) : (
             <p className="text-center py-6 text-gray-500 bg-white rounded-lg border border-dashed border-gray-300">{language === 'ar' ? 'لا يوجد سجل تغيير زيت' : 'No oil change history found'}</p>
           )}
@@ -252,6 +268,22 @@ export const VehicleDetailsView: React.FC<VehicleDetailsViewProps> = ({
           vehicle={vehicle}
           allLogs={oilLogs}
           onClose={() => setSelectedCardLog(null)}
+          onUpdate={(updated) => {
+            setSelectedCardLog(updated);
+          }}
+        />
+      )}
+
+      {editingOilLog && (
+        <EditOilLogModal
+          log={editingOilLog}
+          onClose={() => setEditingOilLog(null)}
+          onSuccess={(updated) => {
+            if (selectedCardLog && selectedCardLog.id === updated.id) {
+              setSelectedCardLog(updated);
+            }
+            setEditingOilLog(null);
+          }}
         />
       )}
 

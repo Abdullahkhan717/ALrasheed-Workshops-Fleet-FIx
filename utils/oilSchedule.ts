@@ -33,8 +33,58 @@ export const normalizeVehicleKey = (val: string | undefined): string => {
   return String(val).toLowerCase().replace(/[^a-z0-9]/g, '');
 };
 
+// Cached canonical vehicle map to ensure O(1) instant vehicle lookups without lag
+let cachedVehiclesRef: Vehicle[] | null = null;
+let cachedCanonicalMap: Map<string, string> = new Map();
+
+export const getCanonicalVehicleMap = (vehicles: Vehicle[] = []): Map<string, string> => {
+  if (vehicles === cachedVehiclesRef && cachedCanonicalMap.size > 0) {
+    return cachedCanonicalMap;
+  }
+  const map = new Map<string, string>();
+  for (let i = 0; i < vehicles.length; i++) {
+    const v = vehicles[i];
+    if (!v.id) continue;
+    const vid = String(v.id);
+    map.set(vid, vid);
+    const nVid = normalizeVehicleKey(vid);
+    if (nVid) map.set(nVid, vid);
+
+    if (v.vehicleNumber) {
+      const vNum = String(v.vehicleNumber);
+      map.set(vNum, vid);
+      const nVNum = normalizeVehicleKey(vNum);
+      if (nVNum && !map.has(nVNum)) map.set(nVNum, vid);
+    }
+    if (v.vehicleCompanyNumber) {
+      const vComp = String(v.vehicleCompanyNumber);
+      map.set(vComp, vid);
+      const nVComp = normalizeVehicleKey(vComp);
+      if (nVComp && !map.has(nVComp)) map.set(nVComp, vid);
+    }
+  }
+  cachedVehiclesRef = vehicles;
+  cachedCanonicalMap = map;
+  return map;
+};
+
+export const resolveCanonicalVehicleId = (idOrKey: string | undefined, vehicles: Vehicle[] = []): string => {
+  if (!idOrKey) return '';
+  const str = String(idOrKey).trim();
+  if (!vehicles || vehicles.length === 0) return str;
+  const map = getCanonicalVehicleMap(vehicles);
+  const direct = map.get(str);
+  if (direct) return direct;
+  const norm = normalizeVehicleKey(str);
+  if (norm) {
+    const fromNorm = map.get(norm);
+    if (fromNorm) return fromNorm;
+  }
+  return str;
+};
+
 /**
- * Checks if two vehicle identifiers or log vehicleIds belong to the same vehicle.
+ * Checks if two vehicle identifiers or log vehicleIds belong to the same vehicle in O(1).
  */
 export const areSameVehicle = (
   vehIdA: string | undefined,
@@ -50,18 +100,9 @@ export const areSameVehicle = (
 
   if (!vehicles || vehicles.length === 0) return false;
 
-  for (let i = 0; i < vehicles.length; i++) {
-    const v = vehicles[i];
-    const vidKey = normalizeVehicleKey(v.id);
-    const vNumKey = normalizeVehicleKey(v.vehicleNumber);
-    const vCompKey = normalizeVehicleKey(v.vehicleCompanyNumber);
-    
-    const matchesA = (v.id === vehIdA || (vidKey !== '' && vidKey === keyA) || (vNumKey !== '' && vNumKey === keyA) || (vCompKey !== '' && vCompKey === keyA));
-    const matchesB = (v.id === vehIdB || (vidKey !== '' && vidKey === keyB) || (vNumKey !== '' && vNumKey === keyB) || (vCompKey !== '' && vCompKey === keyB));
-    if (matchesA && matchesB) return true;
-  }
-
-  return false;
+  const canA = resolveCanonicalVehicleId(vehIdA, vehicles);
+  const canB = resolveCanonicalVehicleId(vehIdB, vehicles);
+  return canA !== '' && canB !== '' && canA === canB;
 };
 
 /**
@@ -153,6 +194,19 @@ export const calculateOilSchedule = (
     return dateA - dateB;
   });
 
+  // Pre-filter prior logs once for all 6 items instead of recalculating 6 times
+  const targetDate = currentDate ? (parseDate(currentDate).getTime() || Infinity) : Infinity;
+  const priorLogs = sortedLogs.filter(log => {
+    if (currentLogId && log.id === currentLogId) return false;
+    const logOdo = parseOdometer(log.mileage);
+    if (currentOdo > 0 && logOdo > currentOdo) return false;
+    if (logOdo === currentOdo && currentLogId && log.id !== currentLogId) {
+      const lDate = parseDate(log.date).getTime() || 0;
+      if (lDate > targetDate) return false;
+    }
+    return true;
+  });
+
   const getNextOdo = (
     itemId: 'engineOil' | 'gearOil' | 'deffranceOil' | 'oilFilter' | 'dieselFilter' | 'airFilter',
     intervalKm: number,
@@ -167,18 +221,6 @@ export const calculateOilSchedule = (
     }
 
     // 2. If NOT changed, look back in prior logs for this vehicle
-    const targetDate = currentDate ? (parseDate(currentDate).getTime() || Infinity) : Infinity;
-    const priorLogs = sortedLogs.filter(log => {
-      if (currentLogId && log.id === currentLogId) return false;
-      const logOdo = parseOdometer(log.mileage);
-      if (currentOdo > 0 && logOdo > currentOdo) return false;
-      if (logOdo === currentOdo && currentLogId && log.id !== currentLogId) {
-        const lDate = parseDate(log.date).getTime() || 0;
-        if (lDate > targetDate) return false;
-      }
-      return true;
-    });
-
     // Traverse backwards from most recent prior log
     for (let i = priorLogs.length - 1; i >= 0; i--) {
       const prior = priorLogs[i];

@@ -8,16 +8,19 @@ import {
   ShareIcon, 
   TruckIcon, 
   CheckCircleIcon,
-  CalendarIcon
+  CalendarIcon,
+  PencilSquareIcon
 } from './Icons';
 import { formatDate, formatTime, formatVehicleInfo } from '../utils/formatters';
 import { calculateOilSchedule, parseOdometer } from '../utils/oilSchedule';
+import { EditOilLogModal } from './EditOilLogModal';
 
 interface OilChangeCardModalProps {
   log: OilLog;
   vehicle?: Vehicle;
   allLogs?: OilLog[];
   onClose: () => void;
+  onUpdate?: (updatedLog: OilLog) => void;
 }
 
 export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
@@ -25,24 +28,32 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
   vehicle,
   allLogs,
   onClose,
+  onUpdate,
 }) => {
   const { t, language } = useTranslation();
   const { oilLogs: contextOilLogs, vehicles: contextVehicles } = useData();
   const [copied, setCopied] = useState(false);
+  const [currentLog, setCurrentLog] = useState<OilLog>(log);
+  const [isEditing, setIsEditing] = useState(false);
+
+  React.useEffect(() => {
+    setCurrentLog(log);
+  }, [log]);
 
   const logsToUse = allLogs && allLogs.length > 0 ? allLogs : contextOilLogs;
   const vehiclesToUse = contextVehicles;
+  const currentVehicle = vehicle || vehiclesToUse.find(v => v.id === currentLog.vehicleId);
 
-  const currentOdo = parseOdometer(log.mileage);
+  const currentOdo = parseOdometer(currentLog.mileage);
   const schedule = calculateOilSchedule(
-    log.mileage,
-    log.oilTypes,
-    log.filters,
-    log.vehicleId,
+    currentLog.mileage,
+    currentLog.oilTypes,
+    currentLog.filters,
+    currentLog.vehicleId,
     logsToUse,
     vehiclesToUse,
-    log.id,
-    log.date
+    currentLog.id,
+    currentLog.date
   );
 
   const engineOilItem = schedule.find(s => s.id === 'engineOil');
@@ -112,13 +123,24 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
               {t('vehicle')}: <span className="font-bold text-emerald-600">{vehicleTitle}</span>
             </p>
           </div>
-          <button 
-            onClick={onClose} 
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            title={t('close')}
-          >
-            <XMarkIcon className="h-6 w-6 text-gray-500" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm transition active:scale-95"
+              title={t('editOilLog') || t('edit')}
+            >
+              <PencilSquareIcon className="h-4 w-4" />
+              <span>{t('edit')}</span>
+            </button>
+            <button 
+              onClick={onClose} 
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              title={t('close')}
+            >
+              <XMarkIcon className="h-6 w-6 text-gray-500" />
+            </button>
+          </div>
         </div>
 
         {/* Content - Clean and organized */}
@@ -410,8 +432,17 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
         {/* Footer Actions - Matching TyreDetailModal buttons */}
         <div className="p-4 md:p-6 bg-gray-50 border-t flex flex-wrap gap-3">
           <button 
+            type="button"
+            onClick={() => setIsEditing(true)}
+            className="flex-1 min-w-[120px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all font-bold text-sm bg-amber-500 text-white hover:bg-amber-600 shadow-md active:scale-95"
+          >
+            <PencilSquareIcon className="h-5 w-5" />
+            {t('edit')}
+          </button>
+
+          <button 
             onClick={handleWhatsAppShare}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all font-bold text-sm bg-teal-600 text-white hover:bg-teal-700 shadow-md active:scale-95"
+            className="flex-1 min-w-[120px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all font-bold text-sm bg-teal-600 text-white hover:bg-teal-700 shadow-md active:scale-95"
           >
             <ShareIcon className="h-5 w-5" />
             {t('share')}
@@ -419,7 +450,7 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
 
           <button 
             onClick={handlePrint}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all font-bold text-sm bg-gray-800 text-white hover:bg-gray-900 shadow-md active:scale-95"
+            className="flex-1 min-w-[120px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all font-bold text-sm bg-gray-800 text-white hover:bg-gray-900 shadow-md active:scale-95"
           >
             <PrinterIcon className="h-5 w-5" />
             {t('print')}
@@ -427,6 +458,19 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
         </div>
 
       </div>
+
+      {/* Edit Oil Log Modal */}
+      {isEditing && (
+        <EditOilLogModal
+          log={currentLog}
+          onClose={() => setIsEditing(false)}
+          onSuccess={(updated) => {
+            setCurrentLog(updated);
+            if (onUpdate) onUpdate(updated);
+            setIsEditing(false);
+          }}
+        />
+      )}
     </div>
   );
 };

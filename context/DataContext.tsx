@@ -252,8 +252,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
               console.error(`Failed to parse oil log ${log.id}:`, e);
               return { ...log, oilTypes: [], filters: [] } as OilLog;
           }
-      }).filter((log, index, self) => index === self.findIndex((l) => l.id === log.id && l.id !== ''));
-      setOilLogs(parsedOilLogs);
+      });
+      setOilLogs(uniqueById(parsedOilLogs));
       
       const rawTyreLogs = data[tlKey] || [];
       const parsedTyreLogs = rawTyreLogs.map((log: any) => {
@@ -393,6 +393,33 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ArabicName: payload.ArabicName || payload.arabicName,
             Condition: payload.Condition || payload.condition
         };
+    }
+    if (sheetName === 'OilLogs' || sheetName === 'oilLogs') {
+      setOilLogs(prev => prev.map(log => {
+        if (log.id === payload.id) {
+          let oilTypes = payload.oilTypes;
+          if (typeof oilTypes === 'string') {
+            try { oilTypes = JSON.parse(oilTypes); } catch (e) { oilTypes = [oilTypes]; }
+          }
+          let filters = payload.filters;
+          if (typeof filters === 'string') {
+            try { filters = JSON.parse(filters); } catch (e) { filters = [filters]; }
+          }
+          return {
+            ...log,
+            vehicleId: String(payload.vehicleId || payload.VehicleId || log.vehicleId),
+            driverName: String(payload.driverName || log.driverName),
+            mileage: String(payload.mileage || log.mileage),
+            location: String(payload.location || log.location),
+            date: payload.date || log.date,
+            time: payload.time || log.time,
+            remarks: payload.remarks !== undefined ? String(payload.remarks) : log.remarks,
+            oilTypes: Array.isArray(oilTypes) ? oilTypes : log.oilTypes,
+            filters: Array.isArray(filters) ? filters : log.filters
+          };
+        }
+        return log;
+      }));
     }
     const result = await updateRecord(finalPayload, sheetName);
     await fetchData(true);

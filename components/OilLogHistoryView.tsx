@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
-import { DownloadIcon, SearchIcon, PrinterIcon, TruckIcon } from './Icons';
+import { DownloadIcon, SearchIcon, PrinterIcon, TruckIcon, PencilSquareIcon } from './Icons';
 import { formatDate, formatTime, parseDate, formatVehicleInfo } from '../utils/formatters';
 import { calculateOilSchedule, parseOdometer, normalizeVehicleKey } from '../utils/oilSchedule';
 import { OilChangeCardModal } from './OilChangeCardModal';
+import { EditOilLogModal } from './EditOilLogModal';
 import type { OilLog, Vehicle } from '../types';
 import * as XLSX from 'xlsx';
 
@@ -20,6 +21,7 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
   const [oilTypeFilter, setOilTypeFilter] = useState('');
   const [filterTypeFilter, setFilterTypeFilter] = useState('');
   const [selectedCardLog, setSelectedCardLog] = useState<{ log: OilLog; vehicle?: Vehicle } | null>(null);
+  const [editingLog, setEditingLog] = useState<OilLog | null>(null);
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -89,14 +91,21 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
     const query = searchQuery.trim().toLowerCase();
 
     const filtered = oilLogs.filter(log => {
-      if (selectedVehicleId && log.vehicleId !== selectedVehicleId) return false;
-      if (vehicleFilter && String(log.vehicleId) !== vehicleFilter) return false;
+      const rawVid = String(log.vehicleId || '');
+      const resolvedId = keyToVehicleId.get(rawVid) || keyToVehicleId.get(normalizeVehicleKey(rawVid)) || rawVid;
+
+      if (selectedVehicleId) {
+        const targetCanonical = keyToVehicleId.get(selectedVehicleId) || selectedVehicleId;
+        if (resolvedId !== targetCanonical && rawVid !== selectedVehicleId) return false;
+      }
+      if (vehicleFilter) {
+        const targetCanonical = keyToVehicleId.get(vehicleFilter) || vehicleFilter;
+        if (resolvedId !== targetCanonical && rawVid !== vehicleFilter) return false;
+      }
       if (oilTypeFilter && !log.oilTypes?.some(ot => String(ot || '').toLowerCase().includes(oilTypeFilter.toLowerCase()))) return false;
       if (filterTypeFilter && !log.filters?.some(f => String(f || '').toLowerCase().includes(filterTypeFilter.toLowerCase()))) return false;
 
       if (query) {
-        const rawVid = String(log.vehicleId || '');
-        const resolvedId = keyToVehicleId.get(rawVid) || keyToVehicleId.get(normalizeVehicleKey(rawVid)) || rawVid;
         const vehicle = vehicleMap.get(resolvedId) || vehicleMap.get(rawVid);
         const vehicleInfo = vehicle ? `${vehicle.vehicleCompanyNumber || ''} ${vehicle.vehicleNumber || ''} ${vehicle.vehiclesType || ''}`.toLowerCase() : '';
         const driver = String(log.driverName || '').toLowerCase();
@@ -426,17 +435,31 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
                   <span className="text-xs text-gray-400">
                     ID: #{log.id.slice(0, 6)}
                   </span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedCardLog({ log, vehicle });
-                    }}
-                    className="flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm transition"
-                  >
-                    <PrinterIcon className="h-3.5 w-3.5" />
-                    {t('viewOilDetails') || 'View Details & Print'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingLog(log);
+                      }}
+                      className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm transition"
+                      title={t('edit') || 'Edit'}
+                    >
+                      <PencilSquareIcon className="h-3.5 w-3.5" />
+                      {t('edit')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedCardLog({ log, vehicle });
+                      }}
+                      className="flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm transition"
+                    >
+                      <PrinterIcon className="h-3.5 w-3.5" />
+                      {t('viewOilDetails') || 'View Details & Print'}
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -499,6 +522,24 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
           vehicle={selectedCardLog.vehicle}
           allLogs={oilLogs}
           onClose={() => setSelectedCardLog(null)}
+          onUpdate={(updated) => {
+            const v = vehicles.find(veh => veh.id === updated.vehicleId);
+            setSelectedCardLog({ log: updated, vehicle: v });
+          }}
+        />
+      )}
+
+      {/* Edit Oil Log Modal */}
+      {editingLog && (
+        <EditOilLogModal
+          log={editingLog}
+          onClose={() => setEditingLog(null)}
+          onSuccess={(updated) => {
+            if (selectedCardLog && selectedCardLog.log.id === updated.id) {
+              const v = vehicles.find(veh => veh.id === updated.vehicleId);
+              setSelectedCardLog({ log: updated, vehicle: v });
+            }
+          }}
         />
       )}
     </div>

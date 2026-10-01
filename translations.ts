@@ -408,6 +408,9 @@ export const translations: { [lang: string]: { [key: string]: string } } = {
     statusService: 'Status',
     backToHistory: 'Back to History',
     newOilLog: 'New Oil Log',
+    editOilLog: 'Edit Oil Entry',
+    oilLog_updated: 'Oil entry updated successfully.',
+    updateLog: 'Update Log',
     noOilLogsFound: 'No oil logs found.',
     enterCustomLocation: 'Enter Location',
     
@@ -965,6 +968,9 @@ export const translations: { [lang: string]: { [key: string]: string } } = {
     statusService: 'الحالة',
     backToHistory: 'العودة إلى السجل',
     newOilLog: 'سجل زيت جديد',
+    editOilLog: 'تعديل سجل الزيت',
+    oilLog_updated: 'تم تعديل سجل الزيت بنجاح.',
+    updateLog: 'تحديث السجل',
     noOilLogsFound: 'لم يتم العثور على سجلات زيت.',
     enterCustomLocation: 'أدخل الموقع',
     
