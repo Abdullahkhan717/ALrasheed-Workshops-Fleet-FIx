@@ -98,7 +98,12 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
     schedule.forEach(item => {
       const mark = item.wasChanged ? '✅ ' : '▫️ ';
       const name = language === 'ar' ? item.nameAr : item.defaultName;
-      msg += `${mark}*${name}* (+${item.intervalKm.toLocaleString()} KM): *${item.nextOdo.toLocaleString()} KM*\n`;
+      if (item.id === 'airFilter' || item.asPerRequired) {
+        const asReqText = language === 'ar' ? 'حسب الحاجة (As Per Required)' : 'As Per Required';
+        msg += `${mark}*${name}*: *${asReqText}*\n`;
+      } else {
+        msg += `${mark}*${name}* (+${item.intervalKm.toLocaleString()} KM): *${item.nextOdo.toLocaleString()} KM*\n`;
+      }
     });
     if (log.remarks) {
       msg += `────────────────────────────\n`;
@@ -300,10 +305,10 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
                         <span className="text-[9px] text-amber-700 bg-amber-50 border border-amber-200 font-medium px-1 rounded">{language === 'ar' ? 'سابق' : 'Previous'}</span>
                       )}
                     </div>
-                    <span className="text-[10px] text-gray-500">فلتر الهواء (+60,000 KM)</span>
+                    <span className="text-[10px] text-gray-500">فلتر الهواء</span>
                   </div>
-                  <span className="font-mono font-black text-sm text-blue-900 bg-blue-50 px-2 py-1 rounded border border-blue-200">
-                    {(airFilterItem ? airFilterItem.nextOdo : currentOdo + 60000).toLocaleString()} KM
+                  <span className="font-bold text-xs text-blue-900 bg-blue-50 px-2.5 py-1.5 rounded border border-blue-200">
+                    {language === 'ar' ? 'حسب الحاجة (As Per Required)' : 'As Per Required'}
                   </span>
                 </div>
               </div>
@@ -418,10 +423,10 @@ export const OilChangeCardModal: React.FC<OilChangeCardModalProps> = ({
                 <div className="p-2.5 border border-black bg-gray-50 flex justify-between items-center">
                   <div>
                     <span className="font-bold block">Next Air Filter</span>
-                    <span className="text-xs text-gray-600">فلتر الهواء (+60,000 KM)</span>
+                    <span className="text-xs text-gray-600">فلتر الهواء</span>
                   </div>
-                  <span className="font-mono font-black text-lg">
-                    {(airFilterItem ? airFilterItem.nextOdo : currentOdo + 60000).toLocaleString()} KM
+                  <span className="font-bold text-sm text-gray-900 border border-gray-400 bg-white px-2 py-1 rounded">
+                    {language === 'ar' ? 'حسب الحاجة (As Per Required)' : 'As Per Required'}
                   </span>
                 </div>
               </div>

@@ -12,6 +12,7 @@ export interface OilScheduleItem {
   wasChanged: boolean;
   type: 'oil' | 'filter';
   note?: string;
+  asPerRequired?: boolean;
 }
 
 /**
@@ -318,12 +319,13 @@ export const calculateOilSchedule = (
       nameKey: 'oilLog_airFilter',
       defaultName: 'Air Filter',
       nameAr: 'فلتر الهواء',
-      intervalKm: 60000,
+      intervalKm: 0,
       currentOdo,
       nextOdo: airFilterData.nextOdo,
       wasChanged: airFilterData.wasChanged,
       type: 'filter',
-      note: airFilterData.note
+      note: airFilterData.note,
+      asPerRequired: true
     },
     {
       id: 'deffranceOil',

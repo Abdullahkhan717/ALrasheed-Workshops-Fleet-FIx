@@ -174,7 +174,7 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
         'Next Oil Filter (+20k KM)': oilFilterItem ? oilFilterItem.nextOdo : '',
         'Next Fuel Filter (+40k KM)': dieselFilterItem ? dieselFilterItem.nextOdo : '',
         'Next Gear Oil (+60k KM)': gearOilItem ? gearOilItem.nextOdo : '',
-        'Next Air Filter (+60k KM)': airFilterItem ? airFilterItem.nextOdo : '',
+        'Next Air Filter': 'As Per Required',
         'Next Diff Oil (+80k KM)': deffranceItem ? deffranceItem.nextOdo : '',
         [t('remarks')]: log.remarks || ''
       };
@@ -411,12 +411,20 @@ export const OilLogHistoryView: React.FC<OilLogHistoryViewProps> = ({ selectedVe
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-baseline justify-between mt-1">
-                              <span className="text-[10px] text-gray-400">+{item.intervalKm / 1000}k</span>
-                              <span className="font-black text-emerald-700 font-mono text-xs">
-                                {item.nextOdo.toLocaleString()} <span className="text-[9px] text-gray-500 font-sans">KM</span>
-                              </span>
-                            </div>
+                            {item.id === 'airFilter' || item.asPerRequired ? (
+                              <div className="flex items-center justify-between mt-1">
+                                <span className="font-bold text-blue-900 text-[10px] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                                  {language === 'ar' ? 'حسب الحاجة' : 'As Per Required'}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-baseline justify-between mt-1">
+                                <span className="text-[10px] text-gray-400">+{item.intervalKm / 1000}k</span>
+                                <span className="font-black text-emerald-700 font-mono text-xs">
+                                  {item.nextOdo.toLocaleString()} <span className="text-[9px] text-gray-500 font-sans">KM</span>
+                                </span>
+                              </div>
+                            )}
                           </div>
                         );
                       })}

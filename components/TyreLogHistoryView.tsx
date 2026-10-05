@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import type { TyreLog, Vehicle } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
-import { SearchIcon, EyeIcon, PencilIcon, ArrowsRightLeftIcon, DownloadIcon } from './Icons';
+import { SearchIcon, EyeIcon, PencilIcon, ArrowsRightLeftIcon, DownloadIcon, SpeedometerIcon } from './Icons';
 import { formatVehicleInfo, formatDate, formatTime, parseDate } from '../utils/formatters';
 import * as XLSX from 'xlsx';
 import { SearchableVehicleSelect } from './SearchableVehicleSelect';
 import { TyreDetailModal } from './TyreDetailModal';
 import { EditTyreLogModal } from './EditTyreLogModal';
+import { TyreLifespanModal } from './TyreLifespanModal';
 
 interface TyreLogHistoryViewProps {
   tyreLogs: TyreLog[];
@@ -28,6 +29,7 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [selectedSerial, setSelectedSerial] = useState<string | null>(null);
+  const [lifespanSerial, setLifespanSerial] = useState<string | null>(null);
   const [tyreTypeFilter, setTyreTypeFilter] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
   const [selectedVehicleIdFilter, setSelectedVehicleIdFilter] = useState('');
@@ -248,7 +250,19 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
                             <EyeIcon className="h-3 w-3 mr-1" />
                             {t('viewDetails')}
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-1.5 items-center">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLifespanSerial(td.serialNumber);
+                              }}
+                              className="px-2 py-1 bg-white border border-emerald-300 rounded-md text-emerald-700 hover:bg-emerald-50 hover:border-emerald-400 transition-colors shadow-2xs flex items-center gap-1 text-xs font-bold"
+                              title={t('checkLifespan') || 'Check Lifespan'}
+                            >
+                              <SpeedometerIcon className="h-3.5 w-3.5 text-emerald-600" />
+                              <span className="hidden sm:inline">{t('checkLifespan') || 'Lifespan'}</span>
+                            </button>
                             <button
                               type="button"
                               onClick={(e) => {
@@ -299,6 +313,19 @@ export const TyreLogHistoryView: React.FC<TyreLogHistoryViewProps> = ({
           onEdit={(targetLog) => {
             setEditingLog(targetLog);
             setEditingTyreIndex(undefined);
+          }}
+        />
+      )}
+
+      {lifespanSerial && (
+        <TyreLifespanModal
+          serialNumber={lifespanSerial}
+          tyreLogs={tyreLogs}
+          vehicles={vehicles}
+          onClose={() => setLifespanSerial(null)}
+          onOpenDetails={() => {
+            setSelectedSerial(lifespanSerial);
+            setLifespanSerial(null);
           }}
         />
       )}

@@ -202,9 +202,15 @@ export const OilLogView: React.FC = () => {
                       <span className="text-[10px] text-gray-600 block truncate">
                         {language === 'ar' ? item.nameAr : item.defaultName}
                       </span>
-                      <span className="font-mono font-bold text-emerald-800 text-xs">
-                        {item.nextOdo.toLocaleString()} <span className="text-[9px] font-sans text-gray-500">KM</span>
-                      </span>
+                      {item.id === 'airFilter' || item.asPerRequired ? (
+                        <span className="font-bold text-blue-900 text-[10px] bg-blue-50 px-1 py-0.5 rounded border border-blue-200 block mt-0.5 text-center">
+                          {language === 'ar' ? 'حسب الحاجة' : 'As Per Required'}
+                        </span>
+                      ) : (
+                        <span className="font-mono font-bold text-emerald-800 text-xs">
+                          {item.nextOdo.toLocaleString()} <span className="text-[9px] font-sans text-gray-500">KM</span>
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
